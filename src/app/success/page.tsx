@@ -25,8 +25,10 @@ function SuccessContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const namingId = searchParams.get('naming_id');
+  const sessionId = searchParams.get('session_id');
   const { status } = useNamingStatus(namingId);
   const [messageIndex, setMessageIndex] = useState(0);
+  const [triggerAttempted, setTriggerAttempted] = useState(false);
 
   useEffect(() => {
     if (status === 'completed' && namingId) {
@@ -41,26 +43,28 @@ function SuccessContent() {
     return () => clearInterval(timer);
   }, []);
 
-  // 결제 실패 시 수동 생성 트리거
+  // Webhook 실패 대비: 5초 후 결제 확인 + 수동 생성 트리거
   useEffect(() => {
-    if (!namingId) return;
+    if (!namingId || !sessionId || triggerAttempted) return;
 
     const timer = setTimeout(async () => {
-      if (status === 'pending') {
-        try {
-          await fetch('/api/naming/generate', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ namingId }),
-          });
-        } catch {
-          // 무시 — 폴링에서 처리
-        }
+      if (status === 'pending' || status === 'generating') return;
+
+      setTriggerAttempted(true);
+      try {
+        // 결제 확인 + 생성 트리거를 한번에
+        await fetch('/api/naming/verify-and-generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ namingId, sessionId }),
+        });
+      } catch {
+        // 폴링에서 처리
       }
-    }, 10000); // 10초 후 수동 트리거
+    }, 5000);
 
     return () => clearTimeout(timer);
-  }, [namingId, status]);
+  }, [namingId, sessionId, status, triggerAttempted]);
 
   if (status === 'failed') {
     return (
@@ -74,11 +78,11 @@ function SuccessContent() {
         </p>
         <button
           onClick={async () => {
-            if (namingId) {
-              await fetch('/api/naming/generate', {
+            if (namingId && sessionId) {
+              await fetch('/api/naming/verify-and-generate', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ namingId }),
+                body: JSON.stringify({ namingId, sessionId }),
               });
               window.location.reload();
             }
@@ -93,7 +97,6 @@ function SuccessContent() {
 
   return (
     <div className="max-w-lg mx-auto px-5 py-20 text-center animate-fade-in">
-      {/* Loading animation */}
       <div className="mb-10">
         <div className="relative w-20 h-20 mx-auto mb-8">
           <div className="absolute inset-0 rounded-full border-4 border-[var(--gray-100)]" />

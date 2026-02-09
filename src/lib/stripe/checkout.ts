@@ -1,9 +1,11 @@
-import { stripe } from './client';
+import { getStripe } from './client';
 
 export async function createCheckoutSession(params: {
   namingId: string;
   baseUrl: string;
 }) {
+  const stripe = getStripe();
+
   const session = await stripe.checkout.sessions.create({
     payment_method_types: ['card'],
     line_items: [
