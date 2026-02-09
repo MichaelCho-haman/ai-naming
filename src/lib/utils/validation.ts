@@ -22,8 +22,9 @@ export function validateNamingInput(input: NamingInput): string | null {
   }
 
   if (input.birthYear !== undefined) {
-    if (input.birthYear < 1924 || input.birthYear > 2026) {
-      return '유효한 출생년도를 입력해주세요 (1924-2026).';
+    const maxYear = new Date().getFullYear() + 1;
+    if (input.birthYear < 1924 || input.birthYear > maxYear) {
+      return `유효한 출생년도를 입력해주세요 (1924-${maxYear}).`;
     }
   }
 
