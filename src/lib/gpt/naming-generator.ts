@@ -3,9 +3,14 @@ import { getSystemPrompt, buildNamingPrompt } from './prompt-builder';
 import { parseNamingResponse } from './sections';
 import { NamingResult } from '@/types';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+let _openai: OpenAI | null = null;
+
+function getOpenAI(): OpenAI {
+  if (!_openai) {
+    _openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  }
+  return _openai;
+}
 
 export async function generateNaming(params: {
   lastName: string;
@@ -23,7 +28,7 @@ export async function generateNaming(params: {
   const systemPrompt = getSystemPrompt();
   const userPrompt = buildNamingPrompt(params);
 
-  const response = await openai.chat.completions.create({
+  const response = await getOpenAI().chat.completions.create({
     model: 'gpt-4o',
     messages: [
       { role: 'system', content: systemPrompt },
