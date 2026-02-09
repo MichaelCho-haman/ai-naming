@@ -1,0 +1,40 @@
+import OpenAI from 'openai';
+import { getSystemPrompt, buildNamingPrompt } from './prompt-builder';
+import { parseNamingResponse } from './sections';
+import { NamingResult } from '@/types';
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+
+export async function generateNaming(params: {
+  lastName: string;
+  gender: string;
+  birthYear?: number;
+  birthMonth?: number;
+  birthDay?: number;
+  birthHour?: number;
+  birthMinute?: number;
+  keywords?: string;
+}): Promise<{
+  parsed: NamingResult;
+  raw: string;
+}> {
+  const systemPrompt = getSystemPrompt();
+  const userPrompt = buildNamingPrompt(params);
+
+  const response = await openai.chat.completions.create({
+    model: 'gpt-4o',
+    messages: [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: userPrompt },
+    ],
+    max_tokens: 4000,
+    temperature: 0.85,
+  });
+
+  const raw = response.choices[0]?.message?.content || '';
+  const parsed = parseNamingResponse(raw);
+
+  return { parsed, raw };
+}
