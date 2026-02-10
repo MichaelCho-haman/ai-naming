@@ -23,6 +23,7 @@ export default function NamingPage() {
   const [birthMinute, setBirthMinute] = useState('');
   const [selectedKeywords, setSelectedKeywords] = useState<string[]>([]);
   const [error, setError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
   const totalSteps = 4;
 
@@ -34,7 +35,7 @@ export default function NamingPage() {
     );
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     setError('');
 
     if (step === 1) {
@@ -56,19 +57,34 @@ export default function NamingPage() {
     if (step < totalSteps) {
       setStep(step + 1);
     } else {
-      // 입력 완료 → checkout으로 이동
-      const data = {
-        lastName: lastName.trim(),
-        gender,
-        birthYear: birthYear ? Number(birthYear) : undefined,
-        birthMonth: birthMonth ? Number(birthMonth) : undefined,
-        birthDay: birthDay ? Number(birthDay) : undefined,
-        birthHour: birthHour ? Number(birthHour) : undefined,
-        birthMinute: birthMinute ? Number(birthMinute) : undefined,
-        keywords: selectedKeywords.join(', '),
-      };
-      localStorage.setItem('namingInput', JSON.stringify(data));
-      router.push('/checkout');
+      // 입력 완료 → 바로 작명 API 호출
+      setSubmitting(true);
+      try {
+        const res = await fetch('/api/naming/create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            lastName: lastName.trim(),
+            gender,
+            birthYear: birthYear ? Number(birthYear) : undefined,
+            birthMonth: birthMonth ? Number(birthMonth) : undefined,
+            birthDay: birthDay ? Number(birthDay) : undefined,
+            birthHour: birthHour ? Number(birthHour) : undefined,
+            birthMinute: birthMinute ? Number(birthMinute) : undefined,
+            keywords: selectedKeywords.join(', ') || undefined,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          setError(data.error || '작명 요청에 실패했습니다');
+          setSubmitting(false);
+          return;
+        }
+        router.push(`/success?naming_id=${data.namingId}`);
+      } catch {
+        setError('네트워크 오류가 발생했습니다');
+        setSubmitting(false);
+      }
     }
   };
 
@@ -228,8 +244,8 @@ export default function NamingPage() {
 
       {/* Navigation */}
       <div className="mt-10 space-y-3">
-        <Button onClick={handleNext}>
-          {step < totalSteps ? '다음' : '입력 완료'}
+        <Button onClick={handleNext} loading={submitting}>
+          {step < totalSteps ? '다음' : '작명 시작'}
         </Button>
         {step > 1 && (
           <Button variant="ghost" onClick={() => { setStep(step - 1); setError(''); }}>

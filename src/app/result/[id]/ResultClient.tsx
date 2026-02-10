@@ -4,7 +4,6 @@ import { useState } from 'react';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import { NamingResult, NameSuggestion } from '@/types';
-import { useAuth } from '@/hooks/useAuth';
 
 interface Props {
   namingId: string;
@@ -13,28 +12,8 @@ interface Props {
   result: NamingResult;
 }
 
-export default function ResultClient({ namingId, lastName, result }: Props) {
-  const { user, signInWithGoogle } = useAuth();
+export default function ResultClient({ lastName, result }: Props) {
   const [expandedIndex, setExpandedIndex] = useState<number>(0);
-  const [saved, setSaved] = useState(false);
-
-  const handleSave = async () => {
-    if (!user) {
-      signInWithGoogle(`/result/${namingId}`);
-      return;
-    }
-
-    try {
-      await fetch('/api/naming/link', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ namingId }),
-      });
-      setSaved(true);
-    } catch {
-      // 무시
-    }
-  };
 
   const handleShare = async () => {
     const url = window.location.href;
@@ -102,18 +81,14 @@ export default function ResultClient({ namingId, lastName, result }: Props) {
 
       {/* Actions */}
       <div className="space-y-3">
-        {!saved ? (
-          <Button onClick={handleSave} variant="secondary">
-            {user ? '내 작명에 저장' : '로그인하고 저장하기'}
-          </Button>
-        ) : (
-          <div className="text-center text-sm text-green-600 font-medium py-3">
-            저장되었습니다!
-          </div>
-        )}
-        <Button onClick={handleShare} variant="ghost">
+        <Button onClick={handleShare} variant="secondary">
           결과 공유하기
         </Button>
+        <a href="/naming">
+          <Button variant="ghost">
+            다시 작명하기
+          </Button>
+        </a>
       </div>
     </div>
   );

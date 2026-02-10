@@ -20,7 +20,7 @@ export default function Home() {
         </p>
         <Link href="/naming">
           <Button>
-            작명 시작하기 — ₩990
+            무료로 작명 시작하기
           </Button>
         </Link>
       </section>
@@ -78,9 +78,8 @@ export default function Home() {
         <div className="space-y-6">
           {[
             { step: '1', title: '기본 정보 입력', desc: '성, 성별, 생년월일을 알려주세요' },
-            { step: '2', title: '결제', desc: '₩990만 결제하면 바로 시작됩니다' },
-            { step: '3', title: 'AI가 분석 중', desc: '수천 가지 조합을 분석합니다 (약 30초)' },
-            { step: '4', title: '결과 확인', desc: '추천 이름 5개 + 상세 분석을 확인하세요' },
+            { step: '2', title: 'AI가 분석 중', desc: '수천 가지 조합을 분석합니다 (약 30초)' },
+            { step: '3', title: '결과 확인', desc: '추천 이름 5개 + 상세 분석을 확인하세요' },
           ].map((item) => (
             <div key={item.step} className="flex items-start gap-4">
               <div className="w-8 h-8 rounded-full bg-[var(--blue-primary)] text-white flex items-center justify-center text-sm font-bold shrink-0">
@@ -102,8 +101,8 @@ export default function Home() {
           {[
             { q: '어떤 정보가 필요한가요?', a: '성(姓), 성별, 생년월일시만 있으면 됩니다. 원하는 느낌이나 키워드를 추가할 수도 있어요.' },
             { q: '이름은 몇 개 받을 수 있나요?', a: '총 5개의 이름을 추천받으며, 각 이름마다 한자 의미, 획수 분석, 오행 분석, 종합 점수가 포함됩니다.' },
-            { q: '결과를 다시 볼 수 있나요?', a: '네! 결과 링크를 저장하거나, 로그인하면 "내 작명" 목록에서 언제든 다시 확인할 수 있습니다.' },
-            { q: '환불이 가능한가요?', a: '디지털 콘텐츠 특성상 결과가 생성된 후에는 환불이 어렵습니다. 다만 기술 문제로 결과를 받지 못한 경우 재생성하거나 환불해드립니다.' },
+            { q: '결과를 다시 볼 수 있나요?', a: '네! 결과 링크를 저장하면 언제든 다시 확인할 수 있습니다.' },
+            { q: '정말 무료인가요?', a: '네, 현재 무료로 제공되고 있습니다. 부담 없이 이용해보세요!' },
           ].map((item, i) => (
             <Card key={i}>
               <h3 className="font-semibold text-[var(--gray-900)] mb-2">{item.q}</h3>
@@ -118,10 +117,10 @@ export default function Home() {
         <h2 className="text-2xl font-bold text-[var(--gray-900)] mb-3 break-keep">
           지금 바로 시작하세요
         </h2>
-        <p className="text-[var(--gray-500)] mb-8">커피 한 잔 가격으로 평생의 이름을</p>
+        <p className="text-[var(--gray-500)] mb-8">로그인도 결제도 필요 없어요</p>
         <Link href="/naming">
           <Button>
-            작명 시작하기 — ₩990
+            무료로 작명 시작하기
           </Button>
         </Link>
       </section>

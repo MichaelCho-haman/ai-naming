@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { updateSession } from '@/lib/supabase/middleware';
 
 // Simple in-memory rate limiting
 const rateLimit = new Map<string, { count: number; lastReset: number }>();
@@ -11,11 +10,6 @@ export async function middleware(req: NextRequest) {
 
   // API routes: rate limiting 적용
   if (pathname.startsWith('/api/')) {
-    // Skip webhook (Stripe needs reliable access)
-    if (pathname === '/api/webhook') {
-      return NextResponse.next();
-    }
-
     const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
     const now = Date.now();
 
@@ -33,21 +27,13 @@ export async function middleware(req: NextRequest) {
     }
 
     entry.count++;
-    return NextResponse.next();
   }
 
-  // Auth callback — 그대로 통과
-  if (pathname.startsWith('/auth/')) {
-    return NextResponse.next();
-  }
-
-  // 세션 갱신
-  return await updateSession(req);
+  return NextResponse.next();
 }
 
 export const config = {
   matcher: [
     '/api/:path*',
-    '/((?!_next/static|_next/image|favicon.ico|auth/|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)',
   ],
 };

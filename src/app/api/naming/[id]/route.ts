@@ -21,7 +21,6 @@ export async function GET(
     birthDay: naming.birth_day,
     keywords: naming.keywords,
     namingContent: naming.naming_content,
-    paymentStatus: naming.payment_status,
     generationStatus: naming.generation_status,
     createdAt: naming.created_at,
   });

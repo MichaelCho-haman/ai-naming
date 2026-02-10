@@ -53,11 +53,7 @@ export interface Naming {
   keywords?: string;
   namingContent: NamingResult | null;
   namingRaw: string | null;
-  stripeSessionId: string | null;
-  paymentStatus: 'pending' | 'paid' | 'failed';
   generationStatus: 'pending' | 'generating' | 'completed' | 'failed';
-  amountCents: number;
-  userId?: string;
   createdAt: string;
   viewCount: number;
   sharedCount: number;

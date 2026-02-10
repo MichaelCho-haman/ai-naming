@@ -25,10 +25,8 @@ function SuccessContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const namingId = searchParams.get('naming_id');
-  const sessionId = searchParams.get('session_id');
   const { status } = useNamingStatus(namingId);
   const [messageIndex, setMessageIndex] = useState(0);
-  const [triggerAttempted, setTriggerAttempted] = useState(false);
 
   useEffect(() => {
     if (status === 'completed' && namingId) {
@@ -43,29 +41,6 @@ function SuccessContent() {
     return () => clearInterval(timer);
   }, []);
 
-  // Webhook 실패 대비: 5초 후 결제 확인 + 수동 생성 트리거
-  useEffect(() => {
-    if (!namingId || !sessionId || triggerAttempted) return;
-
-    const timer = setTimeout(async () => {
-      if (status === 'pending' || status === 'generating') return;
-
-      setTriggerAttempted(true);
-      try {
-        // 결제 확인 + 생성 트리거를 한번에
-        await fetch('/api/naming/verify-and-generate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ namingId, sessionId }),
-        });
-      } catch {
-        // 폴링에서 처리
-      }
-    }, 5000);
-
-    return () => clearTimeout(timer);
-  }, [namingId, sessionId, status, triggerAttempted]);
-
   if (status === 'failed') {
     return (
       <div className="max-w-lg mx-auto px-5 py-20 text-center animate-fade-in">
@@ -77,16 +52,7 @@ function SuccessContent() {
           문제가 지속되면 고객센터로 문의해주세요
         </p>
         <button
-          onClick={async () => {
-            if (namingId && sessionId) {
-              await fetch('/api/naming/verify-and-generate', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ namingId, sessionId }),
-              });
-              window.location.reload();
-            }
-          }}
+          onClick={() => router.push('/naming')}
           className="text-[var(--blue-primary)] font-medium hover:underline"
         >
           다시 시도
