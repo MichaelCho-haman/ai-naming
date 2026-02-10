@@ -2,6 +2,7 @@ import OpenAI from 'openai';
 import { getSystemPrompt, buildNamingPrompt } from './prompt-builder';
 import { parseNamingResponse } from './sections';
 import { NamingResult } from '@/types';
+import { overrideStrokeAnalysisWithDb } from '@/lib/hanja/stroke-analysis';
 
 let _openai: OpenAI | null = null;
 
@@ -41,6 +42,10 @@ export async function generateNaming(params: {
 
   const raw = response.choices[0]?.message?.content || '';
   const parsed = parseNamingResponse(raw);
+  const parsedWithDb: NamingResult = {
+    ...parsed,
+    names: parsed.names.map((name) => overrideStrokeAnalysisWithDb(params.lastName, name)),
+  };
 
-  return { parsed, raw };
+  return { parsed: parsedWithDb, raw };
 }
