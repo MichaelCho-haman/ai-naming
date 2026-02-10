@@ -69,7 +69,10 @@ export function buildNamingPrompt(params: {
 - hanjaChars에는 각 글자의 우리말 뜻풀이를 넣으세요 (character에 한글 글자, meaning에 뜻, element에 연관 오행)
 - 순우리말 이름은 획수 분석이 적용되지 않으므로, strokeAnalysis의 모든 value를 0으로, description에 "순우리말 이름"이라고 넣으세요
 - 흔한 순우리말 이름(하늘, 나래 등)보다 독특하고 예쁜 우리말 이름을 우선 추천하세요`
-    : '';
+    : `\n\n★ 중요: 한자 작명 모드입니다.
+- hanjaName에는 반드시 한자를 표기하세요 (예: 金賢宇)
+- hanjaChars의 character에는 반드시 실제 한자 2글자만 넣으세요 (한글 음차 금지)
+- "순우리말" 표기는 절대 사용하지 마세요`;
 
   return `다음 조건으로 이름 5개를 추천해주세요:
 
