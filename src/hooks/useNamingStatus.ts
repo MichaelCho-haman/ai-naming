@@ -1,19 +1,29 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 interface NamingStatus {
   generationStatus: string;
   namingContent: unknown;
 }
 
+const POLLING_TIMEOUT_MS = 90_000; // 90초 후 타임아웃
+
 export function useNamingStatus(namingId: string | null) {
   const [status, setStatus] = useState<string>('pending');
   const [data, setData] = useState<NamingStatus | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const startTime = useRef(Date.now());
 
   const fetchStatus = useCallback(async () => {
     if (!namingId) return;
+
+    // 타임아웃 체크
+    if (Date.now() - startTime.current > POLLING_TIMEOUT_MS) {
+      setStatus('failed');
+      setError('작명 생성 시간이 초과되었습니다. 다시 시도해주세요.');
+      return true; // stop polling
+    }
 
     try {
       const res = await fetch(`/api/naming/${namingId}`);
@@ -39,6 +49,7 @@ export function useNamingStatus(namingId: string | null) {
   useEffect(() => {
     if (!namingId) return;
 
+    startTime.current = Date.now();
     let timer: NodeJS.Timeout;
     let stopped = false;
 

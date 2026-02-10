@@ -1,8 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse, after } from 'next/server';
 import { createNaming, updateGenerationStatus, saveNamingResult } from '@/lib/supabase/queries';
 import { generateNamingId } from '@/lib/utils/id-generator';
 import { validateNamingInput } from '@/lib/utils/validation';
 import { generateNaming } from '@/lib/gpt/naming-generator';
+
+export const maxDuration = 60;
 
 export async function POST(req: NextRequest) {
   try {
@@ -29,18 +31,27 @@ export async function POST(req: NextRequest) {
       keywords: keywords || undefined,
     });
 
-    // GPT 생성 비동기 시작
-    triggerGeneration(namingId, {
-      lastName: lastName.trim(),
-      gender,
-      birthYear,
-      birthMonth,
-      birthDay,
-      birthHour,
-      birthMinute,
-      keywords,
-      koreanNameOnly: !!koreanNameOnly,
-    }).catch(console.error);
+    // after()로 응답 후에도 함수가 살아있도록 보장
+    after(async () => {
+      try {
+        await updateGenerationStatus(namingId, 'generating');
+        const { parsed, raw } = await generateNaming({
+          lastName: lastName.trim(),
+          gender,
+          birthYear,
+          birthMonth,
+          birthDay,
+          birthHour,
+          birthMinute,
+          keywords,
+          koreanNameOnly: !!koreanNameOnly,
+        });
+        await saveNamingResult(namingId, parsed, raw);
+      } catch (error) {
+        console.error('Generation error:', error);
+        await updateGenerationStatus(namingId, 'failed');
+      }
+    });
 
     return NextResponse.json({ namingId });
   } catch (error) {
@@ -49,26 +60,5 @@ export async function POST(req: NextRequest) {
       { error: '작명 요청 생성에 실패했습니다' },
       { status: 500 }
     );
-  }
-}
-
-async function triggerGeneration(namingId: string, params: {
-  lastName: string;
-  gender: string;
-  birthYear?: number;
-  birthMonth?: number;
-  birthDay?: number;
-  birthHour?: number;
-  birthMinute?: number;
-  keywords?: string;
-  koreanNameOnly?: boolean;
-}) {
-  try {
-    await updateGenerationStatus(namingId, 'generating');
-    const { parsed, raw } = await generateNaming(params);
-    await saveNamingResult(namingId, parsed, raw);
-  } catch (error) {
-    console.error('Generation error:', error);
-    await updateGenerationStatus(namingId, 'failed');
   }
 }
