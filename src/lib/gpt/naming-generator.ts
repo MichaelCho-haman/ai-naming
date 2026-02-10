@@ -2,6 +2,7 @@ import OpenAI from 'openai';
 import { getSystemPrompt, buildNamingPrompt } from './prompt-builder';
 import { parseNamingResponse } from './sections';
 import type { NamingResult } from '@/types';
+import { getHanjaStrokeEntry } from '@/lib/hanja/stroke-db';
 
 type NameSuggestion = NamingResult['names'][number];
 
@@ -16,6 +17,26 @@ function getOpenAI(): OpenAI {
 
 function isHanjaChar(char: string): boolean {
   return /^[\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF]$/.test(char);
+}
+
+// DB에서 한자 개별 획수/오행을 보정
+function correctHanjaCharsWithDb(name: NameSuggestion): NameSuggestion {
+  const updatedChars = name.hanjaChars.map((char) => {
+    const dbEntry = getHanjaStrokeEntry(char.character);
+    if (dbEntry) {
+      return {
+        ...char,
+        strokes: dbEntry.strokes,
+        element: dbEntry.element,
+      };
+    }
+    return char;
+  });
+
+  return {
+    ...name,
+    hanjaChars: updatedChars,
+  };
 }
 
 function normalizeHanjaOutput(name: NameSuggestion, koreanNameOnly: boolean): NameSuggestion {
@@ -77,7 +98,9 @@ export async function generateNaming(params: {
   const parsed = parseNamingResponse(raw);
   const result: NamingResult = {
     ...parsed,
-    names: parsed.names.map((name) => normalizeHanjaOutput(name, !!params.koreanNameOnly)),
+    names: parsed.names
+      .map((name) => normalizeHanjaOutput(name, !!params.koreanNameOnly))
+      .map((name) => correctHanjaCharsWithDb(name)),
   };
 
   return { parsed: result, raw };
