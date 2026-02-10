@@ -13,6 +13,38 @@ function getOpenAI(): OpenAI {
   return _openai;
 }
 
+function isHanjaChar(char: string): boolean {
+  return /^[\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF]$/.test(char);
+}
+
+function normalizeHanjaOutput(name: NameSuggestion, koreanNameOnly: boolean): NameSuggestion {
+  if (koreanNameOnly) {
+    return name;
+  }
+
+  const hanjaCharsOnly = name.hanjaChars
+    .map((char) => char.character)
+    .filter((char) => isHanjaChar(char));
+  const joined = hanjaCharsOnly.join('');
+  const trimmedHanjaName = name.hanjaName.trim();
+
+  if ((!trimmedHanjaName || trimmedHanjaName === '순우리말') && joined.length >= 2) {
+    return {
+      ...name,
+      hanjaName: joined,
+    };
+  }
+
+  if (!trimmedHanjaName) {
+    return {
+      ...name,
+      hanjaName: '한자 미제공',
+    };
+  }
+
+  return name;
+}
+
 export async function generateNaming(params: {
   lastName: string;
   gender: string;
