@@ -167,7 +167,7 @@ export default function NamingPage() {
               <Input
                 label="년"
                 type="number"
-                placeholder="2024"
+                placeholder="2026"
                 value={birthYear}
                 onChange={e => setBirthYear(e.target.value)}
               />
@@ -240,6 +240,11 @@ export default function NamingPage() {
             ))}
           </div>
         </div>
+      )}
+
+      {/* Error */}
+      {error && step >= 3 && (
+        <p className="text-red-500 text-sm mt-4 text-center">{error}</p>
       )}
 
       {/* Navigation */}
