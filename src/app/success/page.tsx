@@ -5,11 +5,11 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { useNamingStatus } from '@/hooks/useNamingStatus';
 
 const LOADING_MESSAGES = [
-  '사주를 분석하고 있어요...',
-  '음양오행의 조화를 살피는 중...',
-  '좋은 한자를 찾고 있어요...',
-  '획수를 계산하고 있어요...',
-  '최적의 이름을 선별하는 중...',
+  '좋은 이름을 찾고 있어요...',
+  '글자들의 궁합을 보는 중...',
+  '이름의 느낌을 다듬고 있어요...',
+  '최적의 조합을 골라내는 중...',
+  '마지막 점검을 하고 있어요...',
   '거의 다 됐어요!',
 ];
 
