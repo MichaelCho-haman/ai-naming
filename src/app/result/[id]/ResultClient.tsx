@@ -155,25 +155,6 @@ function NameCard({
             </div>
           </div>
 
-          {/* 획수 분석 */}
-          <div>
-            <h4 className="text-sm font-semibold text-[var(--gray-700)] mb-3">획수 분석</h4>
-            <div className="grid grid-cols-5 gap-2">
-              {[
-                { label: '천격', data: name.strokeAnalysis.cheongyeok },
-                { label: '인격', data: name.strokeAnalysis.ingyeok },
-                { label: '지격', data: name.strokeAnalysis.jigyeok },
-                { label: '외격', data: name.strokeAnalysis.oegyeok },
-                { label: '총격', data: name.strokeAnalysis.chonggyeok },
-              ].map((item) => (
-                <div key={item.label} className="text-center bg-[var(--gray-50)] rounded-xl p-2.5">
-                  <div className="text-xs text-[var(--gray-400)] mb-1">{item.label}</div>
-                  <div className="text-lg font-bold text-[var(--gray-900)]">{item.data.value}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-
           {/* 음양오행 */}
           {name.fiveElements && (
             <div>
