@@ -15,7 +15,7 @@ export default function Home() {
           가장 좋은 첫 선물
         </h1>
         <p className="text-lg text-[var(--gray-500)] mb-10 leading-relaxed break-keep">
-          사주 분석 기반 AI가 음양오행, 획수, 한자 의미를<br />
+          사주 분석 기반, 음양오행/획수/한자를<br />
           모두 고려한 완벽한 이름을 추천합니다
         </p>
         <Link href="/naming">

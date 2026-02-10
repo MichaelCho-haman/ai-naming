@@ -21,6 +21,7 @@ export async function generateNaming(params: {
   birthHour?: number;
   birthMinute?: number;
   keywords?: string;
+  koreanNameOnly?: boolean;
 }): Promise<{
   parsed: NamingResult;
   raw: string;

@@ -9,6 +9,7 @@ export function getSystemPrompt(): string {
 3. 한자 의미 — 좋은 뜻의 한자를 사용하되, 너무 흔하지 않은 조합을 추천합니다
 4. 발음의 미학 — 부르기 좋고, 듣기 좋은 이름이어야 합니다
 5. 시대성 — 현대 사회에서 자연스럽고 세련된 이름이어야 합니다
+6. 다양성 — 5개의 이름이 서로 완전히 다른 느낌과 스타일이어야 합니다. 비슷한 발음, 같은 글자를 공유하는 이름은 절대 피하세요.
 
 반드시 아래 JSON 형식으로 응답하세요. 다른 텍스트는 포함하지 마세요.`;
 }
@@ -22,6 +23,7 @@ export function buildNamingPrompt(params: {
   birthHour?: number;
   birthMinute?: number;
   keywords?: string;
+  koreanNameOnly?: boolean;
 }): string {
   const genderText = params.gender === 'male' ? '남자' : '여자';
 
@@ -35,12 +37,27 @@ export function buildNamingPrompt(params: {
 
   const keywordsInfo = params.keywords ? `원하는 느낌/키워드: ${params.keywords}` : '';
 
+  const koreanNameInstruction = params.koreanNameOnly
+    ? `\n\n★ 중요: 한글 이름(순우리말 이름)으로 작명해주세요.
+- 한자가 아닌 순우리말로 된 이름을 추천하세요 (예: 하늘, 나래, 아름, 다온, 새봄, 이슬, 가온, 한결 등)
+- hanjaName에는 "순우리말"이라고 표기하세요
+- hanjaChars에는 각 글자의 우리말 뜻풀이를 넣으세요 (character에 한글 글자, meaning에 뜻, element에 연관 오행)
+- 흔한 순우리말 이름(하늘, 나래 등)보다 독특하고 예쁜 우리말 이름을 우선 추천하세요`
+    : '';
+
   return `다음 조건으로 이름 5개를 추천해주세요:
 
 성(姓): ${params.lastName}
 성별: ${genderText}
 ${birthInfo}
-${keywordsInfo}
+${keywordsInfo}${koreanNameInstruction}
+
+★ 다양성 필수 조건:
+- 5개 이름이 서로 완전히 다른 글자, 다른 발음, 다른 느낌이어야 합니다
+- 같은 글자를 두 개 이상의 이름에서 공유하지 마세요 (예: 서윤, 서연처럼 '서'가 반복되면 안 됨)
+- 흔한 인기 이름(서윤, 서연, 지우, 하준, 시우 등)은 최대 1개만 포함하세요
+- 나머지는 독창적이면서도 자연스러운 이름을 추천하세요
+- 각 이름의 첫 글자가 모두 달라야 합니다
 
 반드시 아래 JSON 형식으로만 응답하세요:
 
@@ -76,5 +93,6 @@ ${keywordsInfo}
 - 각 이름의 점수는 70~98 사이로 차등을 두세요
 - 점수가 높은 순서대로 정렬하세요
 - 실제 존재하는 한자를 사용하고, 획수를 정확하게 계산하세요
+- 5개 이름의 첫 글자(이름 부분)가 모두 달라야 합니다
 - 반드시 유효한 JSON만 출력하세요`;
 }

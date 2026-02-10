@@ -7,7 +7,7 @@ import { generateNaming } from '@/lib/gpt/naming-generator';
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { lastName, gender, birthYear, birthMonth, birthDay, birthHour, birthMinute, keywords } = body;
+    const { lastName, gender, birthYear, birthMonth, birthDay, birthHour, birthMinute, keywords, koreanNameOnly } = body;
 
     const validationError = validateNamingInput({ lastName, gender, birthYear, birthMonth, birthDay, birthHour, birthMinute });
     if (validationError) {
@@ -39,6 +39,7 @@ export async function POST(req: NextRequest) {
       birthHour,
       birthMinute,
       keywords,
+      koreanNameOnly: !!koreanNameOnly,
     }).catch(console.error);
 
     return NextResponse.json({ namingId });
@@ -60,6 +61,7 @@ async function triggerGeneration(namingId: string, params: {
   birthHour?: number;
   birthMinute?: number;
   keywords?: string;
+  koreanNameOnly?: boolean;
 }) {
   try {
     await updateGenerationStatus(namingId, 'generating');
