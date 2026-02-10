@@ -2,26 +2,6 @@ import { NameSuggestion, StrokeAnalysis } from '@/types';
 import { getHanjaStrokeEntry } from './stroke-db';
 import { getSurnameStroke } from './surname-strokes';
 
-const NO_STROKE_ANALYSIS: StrokeAnalysis = {
-  cheongyeok: { value: 0, description: '순우리말/한글 이름은 한자 획수 분석 제외' },
-  ingyeok: { value: 0, description: '순우리말/한글 이름은 한자 획수 분석 제외' },
-  jigyeok: { value: 0, description: '순우리말/한글 이름은 한자 획수 분석 제외' },
-  oegyeok: { value: 0, description: '순우리말/한글 이름은 한자 획수 분석 제외' },
-  chonggyeok: { value: 0, description: '순우리말/한글 이름은 한자 획수 분석 제외' },
-};
-
-function isHangulChar(char: string): boolean {
-  return /^[\uAC00-\uD7A3]$/.test(char);
-}
-
-function shouldSkipHanjaStrokeAnalysis(name: NameSuggestion): boolean {
-  if (name.hanjaName === '순우리말') {
-    return true;
-  }
-
-  return name.hanjaChars.some((char) => isHangulChar(char.character));
-}
-
 function createAnalysis(surnameStroke: number, firstStroke: number, secondStroke: number): StrokeAnalysis {
   const cheongyeok = surnameStroke + 1;
   const ingyeok = surnameStroke + firstStroke;
@@ -54,51 +34,33 @@ function createAnalysis(surnameStroke: number, firstStroke: number, secondStroke
 }
 
 export function overrideStrokeAnalysisWithDb(lastName: string, name: NameSuggestion): NameSuggestion {
-  if (shouldSkipHanjaStrokeAnalysis(name)) {
-    return {
-      ...name,
-      strokeAnalysis: NO_STROKE_ANALYSIS,
-    };
-  }
-
   const surnameStroke = getSurnameStroke(lastName);
-  if (!surnameStroke || name.hanjaChars.length < 2) {
+  if (!surnameStroke || name.hanjaName === '순우리말' || name.hanjaChars.length < 2) {
     return name;
   }
 
   const updatedChars = name.hanjaChars.map((char) => {
     const dbEntry = getHanjaStrokeEntry(char.character);
-    return dbEntry
-      ? {
-          ...char,
-          strokes: dbEntry.strokes,
-          element: dbEntry.element,
-        }
-      : char;
+    if (!dbEntry) {
+      return char;
+    }
+    return {
+      ...char,
+      strokes: dbEntry.strokes,
+      element: dbEntry.element,
+    };
   });
 
   const first = updatedChars[0];
   const second = updatedChars[1];
-  const firstDb = getHanjaStrokeEntry(first?.character || '');
-  const secondDb = getHanjaStrokeEntry(second?.character || '');
 
-  if (!firstDb || !secondDb) {
-    return {
-      ...name,
-      hanjaChars: updatedChars,
-      strokeAnalysis: {
-        cheongyeok: { value: 0, description: '획수 DB 미지원 한자 포함 (분석 보류)' },
-        ingyeok: { value: 0, description: '획수 DB 미지원 한자 포함 (분석 보류)' },
-        jigyeok: { value: 0, description: '획수 DB 미지원 한자 포함 (분석 보류)' },
-        oegyeok: { value: 0, description: '획수 DB 미지원 한자 포함 (분석 보류)' },
-        chonggyeok: { value: 0, description: '획수 DB 미지원 한자 포함 (분석 보류)' },
-      },
-    };
+  if (!first?.strokes || !second?.strokes) {
+    return { ...name, hanjaChars: updatedChars };
   }
 
   return {
     ...name,
     hanjaChars: updatedChars,
-    strokeAnalysis: createAnalysis(surnameStroke, firstDb.strokes, secondDb.strokes),
+    strokeAnalysis: createAnalysis(surnameStroke, first.strokes, second.strokes),
   };
 }
