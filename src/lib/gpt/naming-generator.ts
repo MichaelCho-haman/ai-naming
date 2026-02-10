@@ -1,8 +1,10 @@
 import OpenAI from 'openai';
 import { getSystemPrompt, buildNamingPrompt } from './prompt-builder';
 import { parseNamingResponse } from './sections';
-import { NamingResult } from '@/types';
+import type { NamingResult } from '@/types';
 import { overrideStrokeAnalysisWithDb } from '@/lib/hanja/stroke-analysis';
+
+type NameSuggestion = NamingResult['names'][number];
 
 let _openai: OpenAI | null = null;
 
@@ -76,7 +78,9 @@ export async function generateNaming(params: {
   const parsed = parseNamingResponse(raw);
   const parsedWithDb: NamingResult = {
     ...parsed,
-    names: parsed.names.map((name) => overrideStrokeAnalysisWithDb(params.lastName, name)),
+    names: parsed.names
+      .map((name) => normalizeHanjaOutput(name, !!params.koreanNameOnly))
+      .map((name) => overrideStrokeAnalysisWithDb(params.lastName, name)),
   };
 
   return { parsed: parsedWithDb, raw };
