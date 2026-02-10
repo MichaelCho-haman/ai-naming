@@ -1,7 +1,10 @@
 import OpenAI from 'openai';
 import { getSystemPrompt, buildNamingPrompt } from './prompt-builder';
 import { parseNamingResponse } from './sections';
-import { NamingResult } from '@/types';
+import type { NamingResult } from '@/types';
+import { overrideStrokeAnalysisWithDb } from '@/lib/hanja/stroke-analysis';
+
+type NameSuggestion = NamingResult['names'][number];
 
 let _openai: OpenAI | null = null;
 
@@ -10,6 +13,38 @@ function getOpenAI(): OpenAI {
     _openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
   }
   return _openai;
+}
+
+function isHanjaChar(char: string): boolean {
+  return /^[\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF]$/.test(char);
+}
+
+function normalizeHanjaOutput(name: NameSuggestion, koreanNameOnly: boolean): NameSuggestion {
+  if (koreanNameOnly) {
+    return name;
+  }
+
+  const hanjaCharsOnly = name.hanjaChars
+    .map((char) => char.character)
+    .filter((char) => isHanjaChar(char));
+  const joined = hanjaCharsOnly.join('');
+  const trimmedHanjaName = name.hanjaName.trim();
+
+  if ((!trimmedHanjaName || trimmedHanjaName === '순우리말') && joined.length >= 2) {
+    return {
+      ...name,
+      hanjaName: joined,
+    };
+  }
+
+  if (!trimmedHanjaName) {
+    return {
+      ...name,
+      hanjaName: '한자 미제공',
+    };
+  }
+
+  return name;
 }
 
 export async function generateNaming(params: {
@@ -41,6 +76,12 @@ export async function generateNaming(params: {
 
   const raw = response.choices[0]?.message?.content || '';
   const parsed = parseNamingResponse(raw);
+  const parsedWithDb: NamingResult = {
+    ...parsed,
+    names: parsed.names
+      .map((name) => normalizeHanjaOutput(name, !!params.koreanNameOnly))
+      .map((name) => overrideStrokeAnalysisWithDb(params.lastName, name)),
+  };
 
-  return { parsed, raw };
+  return { parsed: parsedWithDb, raw };
 }

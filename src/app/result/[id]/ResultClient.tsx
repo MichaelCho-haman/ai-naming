@@ -125,7 +125,7 @@ function NameCard({
                 <span className="text-xl font-bold text-[var(--gray-900)]">
                   {lastName}{name.koreanName.replace(new RegExp(`^${lastName}`), '')}
                 </span>
-                <span className="text-sm text-[var(--gray-400)]">{name.hanjaName}</span>
+                <span className="text-sm text-[var(--gray-400)]">{name.hanjaName || '한자 미제공'}</span>
               </div>
             </div>
           </div>
