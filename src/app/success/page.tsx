@@ -5,9 +5,15 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { useNamingStatus } from '@/hooks/useNamingStatus';
 
 const LOADING_MESSAGES = [
+  '고민하고 있어요...',
+  '행복한 아이였으면 좋겠어요...',
+  '기운을 느끼고 있어요...',
+  '좋은 기운을 발견했어요...',
   '좋은 이름을 찾고 있어요...',
+  '이름의 음양오행을 검수하는중...',
   '글자들의 궁합을 보는 중...',
   '이름의 느낌을 다듬고 있어요...',
+  '조금 더 행복하길 기도하는 중...',
   '최적의 조합을 골라내는 중...',
   '마지막 점검을 하고 있어요...',
   '거의 다 됐어요!',
