@@ -17,11 +17,11 @@ export default function ResultClient({ lastName, result }: Props) {
 
   const handleShare = async () => {
     const url = window.location.href;
-    const text = `AI작명소에서 작명 결과를 확인해보세요!`;
+    const text = `애기 이름짓기에서 작명 결과를 확인해보세요!`;
 
     if (navigator.share) {
       try {
-        await navigator.share({ title: 'AI작명소 작명 결과', text, url });
+        await navigator.share({ title: '애기 이름짓기 작명 결과', text, url });
       } catch {
         // 무시
       }

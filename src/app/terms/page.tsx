@@ -10,7 +10,7 @@ export default function TermsPage() {
           <section>
             <h2 className="text-lg font-bold text-[var(--gray-900)]">1. 서비스 개요</h2>
             <p>
-              AI작명소는 인공지능(AI)을 활용한 작명 서비스입니다.
+              애기 이름짓기는 인공지능(AI)을 활용한 작명 서비스입니다.
               사주 분석, 음양오행, 획수 분석 등을 기반으로 이름을 추천합니다.
             </p>
           </section>
@@ -36,7 +36,7 @@ export default function TermsPage() {
           <section>
             <h2 className="text-lg font-bold text-[var(--gray-900)]">4. 면책 조항</h2>
             <p>
-              AI작명소의 추천 이름은 참고용이며, 최종 이름 결정은 사용자의 판단에 따릅니다.
+              애기 이름짓기의 추천 이름은 참고용이며, 최종 이름 결정은 사용자의 판단에 따릅니다.
               추천 결과에 대한 법적 책임은 지지 않습니다.
             </p>
           </section>
@@ -44,7 +44,7 @@ export default function TermsPage() {
           <section>
             <h2 className="text-lg font-bold text-[var(--gray-900)]">5. 지적재산권</h2>
             <p>
-              서비스에 사용된 AI 모델, 알고리즘, 디자인 등의 지적재산권은 AI작명소에 귀속됩니다.
+              서비스에 사용된 AI 모델, 알고리즘, 디자인 등의 지적재산권은 애기 이름짓기에 귀속됩니다.
               작명 결과 자체는 사용자가 자유롭게 활용할 수 있습니다.
             </p>
           </section>

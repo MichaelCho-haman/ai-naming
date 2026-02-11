@@ -6,7 +6,7 @@ export default function Footer() {
       <div className="max-w-lg mx-auto px-5 py-8">
         {/* 링크 */}
         <div className="flex items-center justify-between text-sm text-[var(--gray-400)] mb-6">
-          <span className="font-medium text-[var(--gray-600)]">AI작명소</span>
+          <span className="font-medium text-[var(--gray-600)]">애기 이름짓기</span>
           <div className="flex gap-4">
             <Link href="/privacy" className="hover:text-[var(--gray-600)] transition-colors">
               개인정보처리방침
