@@ -19,6 +19,7 @@ function parseAllowedOrigins() {
 function isAllowedOrigin(origin: string | null) {
   if (!origin) return false;
   if (origin.includes('.toss.im')) return true;
+  if (origin.includes('.tossmini.com')) return true;
   if (origin.startsWith('http://localhost:')) return true;
   if (origin.startsWith('http://127.0.0.1:')) return true;
   return parseAllowedOrigins().includes(origin);
