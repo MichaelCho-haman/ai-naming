@@ -117,7 +117,7 @@ export default function Home() {
         <h2 className="text-2xl font-bold text-[var(--gray-900)] mb-3 break-keep">
           지금 바로 시작하세요
         </h2>
-        <p className="text-[var(--gray-500)] mb-8">로그인도 결제도 필요 없어요</p>
+        <p className="text-[var(--gray-500)] mb-8">토스 로그인 후 바로 이용할 수 있어요</p>
         <Link href="/naming">
           <Button>
             무료로 작명 시작하기

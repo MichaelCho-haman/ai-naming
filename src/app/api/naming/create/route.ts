@@ -14,7 +14,7 @@ export async function OPTIONS(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { lastName, gender, birthYear, birthMonth, birthDay, birthHour, birthMinute, keywords, koreanNameOnly } = body;
+    const { lastName, gender, birthYear, birthMonth, birthDay, birthHour, birthMinute, keywords } = body;
 
     const validationError = validateNamingInput({ lastName, gender, birthYear, birthMonth, birthDay, birthHour, birthMinute });
     if (validationError) {
@@ -49,7 +49,6 @@ export async function POST(req: NextRequest) {
           birthHour,
           birthMinute,
           keywords,
-          koreanNameOnly: !!koreanNameOnly,
         });
         await saveNamingResult(namingId, parsed, raw);
       } catch (error) {

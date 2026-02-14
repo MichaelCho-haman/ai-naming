@@ -16,7 +16,6 @@ export interface NamingRequestFingerprintInput {
   birthHour?: number;
   birthMinute?: number;
   keywords?: string;
-  koreanNameOnly?: boolean;
 }
 
 export function buildNamingRequestFingerprint(input: NamingRequestFingerprintInput) {
@@ -29,7 +28,6 @@ export function buildNamingRequestFingerprint(input: NamingRequestFingerprintInp
     birthHour: input.birthHour ?? null,
     birthMinute: input.birthMinute ?? null,
     keywords: input.keywords ?? null,
-    koreanNameOnly: !!input.koreanNameOnly,
   });
 }
 

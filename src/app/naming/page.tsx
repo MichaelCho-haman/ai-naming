@@ -27,7 +27,6 @@ export default function NamingPage() {
   const [birthHour, setBirthHour] = useState('');
   const [birthMinute, setBirthMinute] = useState('');
   const [selectedKeywords, setSelectedKeywords] = useState<string[]>([]);
-  const [koreanNameOnly, setKoreanNameOnly] = useState(false);
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
@@ -75,7 +74,6 @@ export default function NamingPage() {
           birthHour: birthHour ? Number(birthHour) : undefined,
           birthMinute: birthMinute ? Number(birthMinute) : undefined,
           keywords: selectedKeywords.join(', ') || undefined,
-          koreanNameOnly,
         };
         const fingerprint = buildNamingRequestFingerprint(payload);
         const cachedNamingId = getCachedNamingId(fingerprint);
@@ -263,18 +261,6 @@ export default function NamingPage() {
             ))}
           </div>
 
-          <label className="flex items-center gap-3 mt-6 p-4 bg-[var(--gray-50)] rounded-2xl cursor-pointer">
-            <input
-              type="checkbox"
-              checked={koreanNameOnly}
-              onChange={e => setKoreanNameOnly(e.target.checked)}
-              className="w-5 h-5 rounded accent-[var(--blue-primary)]"
-            />
-            <div>
-              <span className="text-sm font-medium text-[var(--gray-900)]">한글 이름으로 작명</span>
-              <p className="text-xs text-[var(--gray-400)] mt-0.5">한자 없이 순우리말 이름을 추천받습니다</p>
-            </div>
-          </label>
         </div>
       )}
 

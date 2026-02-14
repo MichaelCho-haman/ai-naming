@@ -48,7 +48,6 @@ export function buildNamingPrompt(params: {
   birthHour?: number;
   birthMinute?: number;
   keywords?: string;
-  koreanNameOnly?: boolean;
 }): string {
   const genderText = params.gender === 'male' ? '남자' : '여자';
 
@@ -62,13 +61,7 @@ export function buildNamingPrompt(params: {
 
   const keywordsInfo = params.keywords ? `원하는 느낌/키워드: ${params.keywords}` : '';
 
-  const koreanNameInstruction = params.koreanNameOnly
-    ? `\n\n★ 중요: 한글 이름(순우리말 이름)으로 작명해주세요.
-- 한자가 아닌 순우리말로 된 이름을 추천하세요 (예: 하늘, 나래, 아름, 다온, 새봄, 이슬, 가온, 한결 등)
-- hanjaName에는 "순우리말"이라고 표기하세요
-- hanjaChars에는 각 글자의 우리말 뜻풀이를 넣으세요 (character에 한글 글자, meaning에 뜻, element에 연관 오행)
-- 흔한 순우리말 이름(하늘, 나래 등)보다 독특하고 예쁜 우리말 이름을 우선 추천하세요`
-    : `\n\n★ 중요: 한자 작명 모드입니다.
+  const hanjaInstruction = `\n\n★ 중요: 한자 작명 모드입니다.
 - 반드시 위 "사용 가능한 한자 목록"에 있는 한자만 사용하세요
 - hanjaName에는 반드시 한자를 표기하세요 (예: 金賢宇)
 - hanjaChars의 character에는 반드시 목록에 있는 한자만 넣으세요
@@ -80,7 +73,7 @@ export function buildNamingPrompt(params: {
 성(姓): ${params.lastName}
 성별: ${genderText}
 ${birthInfo}
-${keywordsInfo}${koreanNameInstruction}
+${keywordsInfo}${hanjaInstruction}
 
 ★ 다양성 필수 조건:
 - 5개 이름이 서로 완전히 다른 글자, 다른 발음, 다른 느낌이어야 합니다

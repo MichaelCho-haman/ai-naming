@@ -39,11 +39,7 @@ function correctHanjaCharsWithDb(name: NameSuggestion): NameSuggestion {
   };
 }
 
-function normalizeHanjaOutput(name: NameSuggestion, koreanNameOnly: boolean): NameSuggestion {
-  if (koreanNameOnly) {
-    return name;
-  }
-
+function normalizeHanjaOutput(name: NameSuggestion): NameSuggestion {
   const hanjaCharsOnly = name.hanjaChars
     .map((char) => char.character)
     .filter((char) => isHanjaChar(char));
@@ -76,7 +72,6 @@ export async function generateNaming(params: {
   birthHour?: number;
   birthMinute?: number;
   keywords?: string;
-  koreanNameOnly?: boolean;
 }): Promise<{
   parsed: NamingResult;
   raw: string;
@@ -99,7 +94,7 @@ export async function generateNaming(params: {
   const result: NamingResult = {
     ...parsed,
     names: parsed.names
-      .map((name) => normalizeHanjaOutput(name, !!params.koreanNameOnly))
+      .map((name) => normalizeHanjaOutput(name))
       .map((name) => correctHanjaCharsWithDb(name)),
   };
 
