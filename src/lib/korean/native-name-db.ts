@@ -21,7 +21,7 @@ export interface NativeKoreanNameEntry {
 
 export type NativeNameGender = 'male' | 'female';
 
-const FEMALE_LEANING_NATIVE_NAMES = new Set([
+const MALE_BLOCKED_NATIVE_NAMES = new Set([
   '꽃님',
   '꽃봄',
   '나래',
@@ -55,9 +55,150 @@ const FEMALE_LEANING_NATIVE_NAMES = new Set([
   '흰별',
 ]);
 
+const FEMALE_BLOCKED_NATIVE_NAMES = new Set([
+  '미르',
+  '마루',
+  '바름',
+  '우람',
+  '으뜸',
+  '한길',
+  '한솔',
+  '큰길',
+  '큰힘',
+  '찬솔',
+]);
+
+const MALE_PREFERRED_NATIVE_NAMES = new Set([
+  '가람',
+  '가온',
+  '겨울',
+  '그루',
+  '누리',
+  '늘찬',
+  '다온',
+  '도담',
+  '도운',
+  '두루',
+  '라온',
+  '로운',
+  '마루',
+  '미르',
+  '바다',
+  '바람',
+  '바름',
+  '벼리',
+  '새길',
+  '세움',
+  '세찬',
+  '우람',
+  '으뜸',
+  '이룸',
+  '이든',
+  '자람',
+  '재찬',
+  '찬솔',
+  '큰길',
+  '키움',
+  '한길',
+  '한솔',
+  '한얼',
+  '한울',
+]);
+
+const FEMALE_PREFERRED_NATIVE_NAMES = new Set([
+  '가을',
+  '고은',
+  '고운',
+  '꽃님',
+  '꽃봄',
+  '나래',
+  '나린',
+  '다래',
+  '다솜',
+  '다소니',
+  '다은',
+  '단아',
+  '달래',
+  '도란',
+  '보라',
+  '보미',
+  '봄이',
+  '빛나',
+  '빛내리',
+  '서린',
+  '소담',
+  '소라',
+  '슬비',
+  '아라',
+  '아리',
+  '아림',
+  '윤슬',
+  '이슬',
+  '초롱',
+  '하나',
+  '해나',
+  '해님',
+  '혜윰',
+  '흰별',
+]);
+
+const HIGH_QUALITY_NATIVE_NAMES = new Set([
+  '가온',
+  '가을',
+  '겨울',
+  '누리',
+  '다온',
+  '다올',
+  '다솜',
+  '단비',
+  '도담',
+  '라온',
+  '마루',
+  '미르',
+  '바다',
+  '보람',
+  '사랑',
+  '소담',
+  '슬기',
+  '아라',
+  '아람',
+  '아리',
+  '어진',
+  '윤슬',
+  '이룸',
+  '이레',
+  '이슬',
+  '하늘',
+  '하람',
+  '한결',
+  '한빛',
+  '한솔',
+  '한울',
+  '혜윰',
+]);
+
 function isEntryAllowedByGender(entry: NativeKoreanNameEntry, gender?: NativeNameGender): boolean {
-  if (gender !== 'male') return true;
-  return !FEMALE_LEANING_NATIVE_NAMES.has(entry.name);
+  if (gender === 'male') {
+    return !MALE_BLOCKED_NATIVE_NAMES.has(entry.name);
+  }
+  if (gender === 'female') {
+    return !FEMALE_BLOCKED_NATIVE_NAMES.has(entry.name);
+  }
+  return true;
+}
+
+function getGenderPreferenceScore(entry: NativeKoreanNameEntry, gender?: NativeNameGender): number {
+  if (gender === 'male' && MALE_PREFERRED_NATIVE_NAMES.has(entry.name)) {
+    return 2;
+  }
+  if (gender === 'female' && FEMALE_PREFERRED_NATIVE_NAMES.has(entry.name)) {
+    return 2;
+  }
+  return 0;
+}
+
+function getQualityScore(entry: NativeKoreanNameEntry): number {
+  return HIGH_QUALITY_NATIVE_NAMES.has(entry.name) ? 1 : 0;
 }
 
 export const NATIVE_KOREAN_NAMES: readonly NativeKoreanNameEntry[] = [
@@ -236,19 +377,25 @@ export function pickNativeKoreanNames(params: {
   }
 
   const genderPool = allPool.filter((entry) => isEntryAllowedByGender(entry, gender));
-  const pool = genderPool.length >= count ? genderPool : allPool;
+  const pool = genderPool.length > 0 ? genderPool : allPool;
 
   const seeded = pool
     .map((entry, index) => {
       const tagScore = entry.tags.reduce((acc, tag) => (preferred.has(tag) ? acc + 1 : acc), 0);
+      const genderScore = getGenderPreferenceScore(entry, gender);
+      const qualityScore = getQualityScore(entry);
       const randomScore = hashString(`${seed}|${entry.name}|${index}`) % 1000;
       return {
         entry,
         tagScore,
+        genderScore,
+        qualityScore,
         randomScore,
       };
     })
     .sort((a, b) => {
+      if (b.genderScore !== a.genderScore) return b.genderScore - a.genderScore;
+      if (b.qualityScore !== a.qualityScore) return b.qualityScore - a.qualityScore;
       if (b.tagScore !== a.tagScore) return b.tagScore - a.tagScore;
       return b.randomScore - a.randomScore;
     });
