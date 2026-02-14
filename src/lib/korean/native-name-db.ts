@@ -19,6 +19,47 @@ export interface NativeKoreanNameEntry {
   tags: NativeNameTag[];
 }
 
+export type NativeNameGender = 'male' | 'female';
+
+const FEMALE_LEANING_NATIVE_NAMES = new Set([
+  '꽃님',
+  '꽃봄',
+  '나래',
+  '나린',
+  '다래',
+  '다솜',
+  '다소니',
+  '다은',
+  '단아',
+  '달래',
+  '도란',
+  '보라',
+  '보미',
+  '봄이',
+  '빛나',
+  '새라',
+  '서린',
+  '소담',
+  '소라',
+  '아라',
+  '아리',
+  '아림',
+  '예리',
+  '주리',
+  '초롱',
+  '티나',
+  '하나',
+  '해나',
+  '해님',
+  '혜윰',
+  '흰별',
+]);
+
+function isEntryAllowedByGender(entry: NativeKoreanNameEntry, gender?: NativeNameGender): boolean {
+  if (gender !== 'male') return true;
+  return !FEMALE_LEANING_NATIVE_NAMES.has(entry.name);
+}
+
 export const NATIVE_KOREAN_NAMES: readonly NativeKoreanNameEntry[] = [
   { name: '가람', meaning: '강을 뜻하는 순한글 이름입니다.', tags: ['자연', '활기'] },
   { name: '가온', meaning: '세상의 중심, 가운데를 뜻합니다.', tags: ['차분', '고급'] },
@@ -183,15 +224,19 @@ export function pickNativeKoreanNames(params: {
   seed: string;
   excludeNames?: string[];
   preferredTags?: NativeNameTag[];
+  gender?: NativeNameGender;
 }): NativeKoreanNameEntry[] {
-  const { count, seed, excludeNames = [], preferredTags = [] } = params;
+  const { count, seed, excludeNames = [], preferredTags = [], gender } = params;
   const excludes = new Set(excludeNames);
   const preferred = new Set(preferredTags);
 
-  const pool = NATIVE_KOREAN_NAMES.filter((entry) => !excludes.has(entry.name));
-  if (count <= 0 || pool.length === 0) {
+  const allPool = NATIVE_KOREAN_NAMES.filter((entry) => !excludes.has(entry.name));
+  if (count <= 0 || allPool.length === 0) {
     return [];
   }
+
+  const genderPool = allPool.filter((entry) => isEntryAllowedByGender(entry, gender));
+  const pool = genderPool.length >= count ? genderPool : allPool;
 
   const seeded = pool
     .map((entry, index) => {

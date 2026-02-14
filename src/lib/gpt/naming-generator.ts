@@ -287,6 +287,7 @@ function composeFinalSuggestions(
     seed: buildSeed(params),
     excludeNames: Array.from(usedGivenNames),
     preferredTags,
+    gender: params.gender === 'male' ? 'male' : 'female',
   });
 
   const nativeSuggestions = nativeNames.map((entry, index) =>
