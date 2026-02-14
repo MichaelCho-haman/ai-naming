@@ -131,13 +131,13 @@ function createFallbackHanjaSuggestion(lastName: string, offset: number): NameSu
         character: firstChar,
         meaning: `${firstEntry.reading} 음의 한자`,
         strokes: firstEntry.strokes,
-        element: `${firstEntry.element}(木火土金水 포함)`,
+        element: firstEntry.element,
       },
       {
         character: secondChar,
         meaning: `${secondEntry.reading} 음의 한자`,
         strokes: secondEntry.strokes,
-        element: `${secondEntry.element}(木火土金水 포함)`,
+        element: secondEntry.element,
       },
     ],
     strokeAnalysis: emptyStrokeAnalysis(),
@@ -283,8 +283,7 @@ export async function generateNaming(params: {
 
   const raw = response.choices[0]?.message?.content || '';
   const parsed = parseNamingResponse(raw);
-  const mixGuide =
-    '추천 구성: 한자 이름 3개 + 순한글 이름 2개 (나무위키 고유어 이름 5.1~5.14 기반)';
+  const mixGuide = `추천 구성: 한자 이름 3개 + 순한글 이름 2개 (${NATIVE_KOREAN_NAME_SOURCE} 기반)`;
 
   const basePhilosophy = parsed.philosophy?.trim();
   const result: NamingResult = {
