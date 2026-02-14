@@ -36,7 +36,7 @@ function SuccessContent() {
 
   useEffect(() => {
     if (status === 'completed' && namingId) {
-      router.push(`/result/${namingId}`);
+      router.replace(`/result/${namingId}`);
     }
   }, [status, namingId, router]);
 

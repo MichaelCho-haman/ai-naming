@@ -53,6 +53,7 @@ export interface Naming {
   keywords?: string;
   namingContent: NamingResult | null;
   namingRaw: string | null;
+  paymentStatus: 'pending' | 'free' | 'paid' | 'failed';
   generationStatus: 'pending' | 'generating' | 'completed' | 'failed';
   createdAt: string;
   viewCount: number;

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { withCors } from '@/lib/http/cors';
 
 // Simple in-memory rate limiting
 const rateLimit = new Map<string, { count: number; lastReset: number }>();
@@ -10,6 +11,10 @@ export async function middleware(req: NextRequest) {
 
   // API routes: rate limiting 적용
   if (pathname.startsWith('/api/')) {
+    if (req.method === 'OPTIONS') {
+      return withCors(req, NextResponse.next());
+    }
+
     const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
     const now = Date.now();
 
@@ -20,13 +25,14 @@ export async function middleware(req: NextRequest) {
     }
 
     if (entry.count >= MAX_REQUESTS) {
-      return NextResponse.json(
+      return withCors(req, NextResponse.json(
         { error: '요청이 너무 많습니다. 잠시 후 다시 시도해주세요.' },
         { status: 429 }
-      );
+      ));
     }
 
     entry.count++;
+    return withCors(req, NextResponse.next());
   }
 
   return NextResponse.next();

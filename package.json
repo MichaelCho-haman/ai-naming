@@ -8,6 +8,7 @@
     "start": "next start"
   },
   "dependencies": {
+    "@apps-in-toss/web-framework": "^1.11.2",
     "@stripe/stripe-js": "^8.7.0",
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.95.3",

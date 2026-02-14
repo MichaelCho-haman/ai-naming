@@ -3,8 +3,13 @@ import { createNaming, updateGenerationStatus, saveNamingResult } from '@/lib/su
 import { generateNamingId } from '@/lib/utils/id-generator';
 import { validateNamingInput } from '@/lib/utils/validation';
 import { generateNaming } from '@/lib/gpt/naming-generator';
+import { jsonWithCors, preflight } from '@/lib/http/cors';
 
 export const maxDuration = 60;
+
+export async function OPTIONS(req: NextRequest) {
+  return preflight(req);
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -13,7 +18,7 @@ export async function POST(req: NextRequest) {
 
     const validationError = validateNamingInput({ lastName, gender, birthYear, birthMonth, birthDay, birthHour, birthMinute });
     if (validationError) {
-      return NextResponse.json({ error: validationError }, { status: 400 });
+      return jsonWithCors(req, { error: validationError }, { status: 400 });
     }
 
     const namingId = generateNamingId();
@@ -53,10 +58,11 @@ export async function POST(req: NextRequest) {
       }
     });
 
-    return NextResponse.json({ namingId });
+    return jsonWithCors(req, { namingId });
   } catch (error) {
     console.error('Create naming error:', error);
-    return NextResponse.json(
+    return jsonWithCors(
+      req,
       { error: '작명 요청 생성에 실패했습니다' },
       { status: 500 }
     );

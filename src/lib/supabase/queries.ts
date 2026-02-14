@@ -63,6 +63,19 @@ export async function saveNamingResult(
   if (error) throw new Error(`Failed to save naming result: ${error.message}`);
 }
 
+// 결제 상태 업데이트
+export async function updatePaymentStatus(
+  id: string,
+  status: 'pending' | 'free' | 'paid' | 'failed'
+) {
+  const { error } = await db()
+    .from('namings')
+    .update({ payment_status: status })
+    .eq('id', id);
+
+  if (error) throw new Error(`Failed to update payment status: ${error.message}`);
+}
+
 // Naming 조회
 export async function getNaming(id: string) {
   const { data, error } = await db()

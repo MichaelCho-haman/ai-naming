@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import { NamingResult, NameSuggestion } from '@/types';
@@ -10,14 +11,50 @@ interface Props {
   lastName: string;
   gender: string;
   result: NamingResult;
+  paymentStatus: 'pending' | 'free' | 'paid' | 'failed';
+  isTossTarget: boolean;
 }
 
-export default function ResultClient({ lastName, result }: Props) {
+interface TossCreateOrderEvent {
+  type?: string;
+  [key: string]: unknown;
+}
+
+interface TossCreateOrderGrantArgs {
+  orderId: string;
+}
+
+interface TossCreateOrderOptions {
+  sku: string;
+  processProductGrant?: (args: TossCreateOrderGrantArgs) => Promise<boolean> | boolean;
+  onEvent?: (event: TossCreateOrderEvent | string) => void;
+  onError?: (error: { code?: string; message?: string }) => void;
+}
+
+interface TossBridge {
+  iap?: {
+    createOneTimePurchaseOrder?: (options: TossCreateOrderOptions) => void;
+  };
+}
+
+export default function ResultClient({ namingId, lastName, result, paymentStatus, isTossTarget }: Props) {
+  const router = useRouter();
   const [expandedIndex, setExpandedIndex] = useState<number>(0);
+  const [currentPaymentStatus, setCurrentPaymentStatus] = useState(paymentStatus);
+  const [unlocking, setUnlocking] = useState(false);
+  const [unlockError, setUnlockError] = useState('');
+
+  const isLockedMode = isTossTarget && currentPaymentStatus !== 'paid';
+  const lockedCount = Math.max(result.names.length - 1, 0);
+
+  const namesWithLock = useMemo(
+    () => result.names.map((name, index) => ({ name, locked: isLockedMode && index > 0 })),
+    [result.names, isLockedMode]
+  );
 
   const handleShare = async () => {
     const url = window.location.href;
-    const text = `애기 이름짓기에서 작명 결과를 확인해보세요!`;
+    const text = '애기 이름짓기에서 작명 결과를 확인해보세요!';
 
     if (navigator.share) {
       try {
@@ -31,6 +68,74 @@ export default function ResultClient({ lastName, result }: Props) {
     }
   };
 
+  const handleUnlock = async () => {
+    setUnlockError('');
+    setUnlocking(true);
+
+    try {
+      const bridge = (window as Window & { TossApps?: TossBridge }).TossApps;
+      const sku = process.env.NEXT_PUBLIC_TOSS_IAP_PRODUCT_ID;
+      const userKey =
+        window.localStorage.getItem('toss_user_key') ||
+        (window as Window & { __TOSS_USER_KEY__?: string }).__TOSS_USER_KEY__;
+
+      const completePayment = async (orderId?: string) => {
+        const res = await fetch('/api/iap/complete', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(userKey ? { 'x-toss-user-key': userKey } : {}),
+          },
+          body: JSON.stringify({ namingId, orderId, userKey }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.error || '결제 처리에 실패했습니다');
+        }
+      };
+
+      if (bridge?.iap?.createOneTimePurchaseOrder && sku) {
+        await new Promise<void>((resolve, reject) => {
+          bridge.iap?.createOneTimePurchaseOrder?.({
+            sku,
+            processProductGrant: async ({ orderId }) => {
+              try {
+                await completePayment(orderId);
+                return true;
+              } catch (error) {
+                reject(error);
+                return false;
+              }
+            },
+            onEvent: (event) => {
+              const type = typeof event === 'string' ? event : event.type;
+              if (type === 'SUCCESS') {
+                resolve();
+                return;
+              }
+              if (type === 'CANCEL' || type === 'CANCELED' || type === 'CANCELLED') {
+                reject(new Error('결제가 취소되었습니다'));
+              }
+            },
+            onError: (error) => {
+              reject(new Error(error.message || '결제에 실패했습니다'));
+            },
+          });
+        });
+      } else {
+        await completePayment();
+      }
+
+      setCurrentPaymentStatus('paid');
+      setUnlocking(false);
+      router.refresh();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : '결제 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
+      setUnlockError(message);
+      setUnlocking(false);
+    }
+  };
+
   return (
     <div className="max-w-lg mx-auto px-5 py-8 animate-fade-in">
       <div className="text-center mb-8">
@@ -41,21 +146,45 @@ export default function ResultClient({ lastName, result }: Props) {
         <p className="text-[var(--gray-500)]">총 {result.names.length}개의 이름을 추천해드려요</p>
       </div>
 
-      {/* 이름 카드 목록 */}
+      {isLockedMode && (
+        <Card className="mb-4 bg-[var(--blue-light)] border border-[var(--blue-primary)]/20">
+          <h2 className="font-bold text-[var(--gray-900)] mb-1">1개 무료 공개</h2>
+          <p className="text-sm text-[var(--gray-600)]">
+            나머지 {lockedCount}개는 결제 후 바로 확인할 수 있어요.
+          </p>
+        </Card>
+      )}
+
       <div className="space-y-4 mb-8">
-        {result.names.map((name, index) => (
+        {namesWithLock.map(({ name, locked }, index) => (
           <NameCard
             key={index}
             name={name}
             lastName={lastName}
             rank={index + 1}
             expanded={expandedIndex === index}
-            onToggle={() => setExpandedIndex(expandedIndex === index ? -1 : index)}
+            locked={locked}
+            onToggle={() => {
+              if (locked) return;
+              setExpandedIndex(expandedIndex === index ? -1 : index);
+            }}
           />
         ))}
       </div>
 
-      {/* 작명 철학 */}
+      {isLockedMode && (
+        <Card className="mb-8">
+          <h2 className="font-bold text-[var(--gray-900)] mb-2">유료 공개</h2>
+          <p className="text-sm text-[var(--gray-600)] mb-4">
+            숨겨진 {lockedCount}개 이름과 상세 분석을 모두 확인할 수 있어요.
+          </p>
+          <Button onClick={handleUnlock} disabled={unlocking}>
+            {unlocking ? '결제 확인 중...' : '500원 결제로 전체 이름 보기'}
+          </Button>
+          {unlockError && <p className="text-red-500 text-sm mt-3">{unlockError}</p>}
+        </Card>
+      )}
+
       {result.philosophy && (
         <Card className="mb-4">
           <h2 className="font-bold text-[var(--gray-900)] mb-3 flex items-center gap-2">
@@ -67,7 +196,6 @@ export default function ResultClient({ lastName, result }: Props) {
         </Card>
       )}
 
-      {/* 피해야 할 조합 */}
       {result.avoidance && (
         <Card className="mb-8">
           <h2 className="font-bold text-[var(--gray-900)] mb-3 flex items-center gap-2">
@@ -79,7 +207,6 @@ export default function ResultClient({ lastName, result }: Props) {
         </Card>
       )}
 
-      {/* Actions */}
       <div className="space-y-3">
         <Button onClick={handleShare} variant="secondary">
           결과 공유하기
@@ -99,12 +226,14 @@ function NameCard({
   lastName,
   rank,
   expanded,
+  locked,
   onToggle,
 }: {
   name: NameSuggestion;
   lastName: string;
   rank: number;
   expanded: boolean;
+  locked: boolean;
   onToggle: () => void;
 }) {
   const scoreColor =
@@ -113,8 +242,8 @@ function NameCard({
     'text-yellow-600 bg-yellow-50';
 
   return (
-    <Card className="overflow-hidden">
-      <button onClick={onToggle} className="w-full text-left">
+    <Card className="overflow-hidden relative">
+      <button onClick={onToggle} className="w-full text-left" disabled={locked}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-full bg-[var(--blue-primary)] text-white flex items-center justify-center text-sm font-bold">
@@ -123,21 +252,28 @@ function NameCard({
             <div>
               <div className="flex items-baseline gap-2">
                 <span className="text-xl font-bold text-[var(--gray-900)]">
-                  {lastName}{name.koreanName.replace(new RegExp(`^${lastName}`), '')}
+                  {locked ? '결제 후 공개' : `${lastName}${name.koreanName.replace(new RegExp(`^${lastName}`), '')}`}
                 </span>
-                <span className="text-sm text-[var(--gray-400)]">{name.hanjaName || '한자 미제공'}</span>
+                <span className="text-sm text-[var(--gray-400)]">{locked ? '잠금' : name.hanjaName || '한자 미제공'}</span>
               </div>
             </div>
           </div>
-          <div className={`px-2.5 py-1 rounded-lg text-sm font-bold ${scoreColor}`}>
-            {name.score}점
-          </div>
+          {!locked && (
+            <div className={`px-2.5 py-1 rounded-lg text-sm font-bold ${scoreColor}`}>
+              {name.score}점
+            </div>
+          )}
         </div>
       </button>
 
-      {expanded && (
+      {locked && (
+        <div className="absolute inset-0 backdrop-blur-[3px] bg-white/55 flex items-center justify-center">
+          <div className="text-sm font-semibold text-[var(--gray-700)]">결제 후 전체 공개</div>
+        </div>
+      )}
+
+      {expanded && !locked && (
         <div className="mt-5 pt-5 border-t border-[var(--gray-100)] space-y-5 animate-fade-in">
-          {/* 한자 분석 */}
           <div>
             <h4 className="text-sm font-semibold text-[var(--gray-700)] mb-3">한자 의미</h4>
             <div className="space-y-2">
@@ -155,7 +291,6 @@ function NameCard({
             </div>
           </div>
 
-          {/* 음양오행 */}
           {name.fiveElements && (
             <div>
               <h4 className="text-sm font-semibold text-[var(--gray-700)] mb-2">음양오행</h4>
@@ -163,7 +298,6 @@ function NameCard({
             </div>
           )}
 
-          {/* 에너지 해석 */}
           {name.energyInterpretation && (
             <div>
               <h4 className="text-sm font-semibold text-[var(--gray-700)] mb-2">이름의 느낌</h4>
@@ -171,7 +305,6 @@ function NameCard({
             </div>
           )}
 
-          {/* 점수 게이지 */}
           <div>
             <div className="flex justify-between items-center mb-2">
               <span className="text-sm font-semibold text-[var(--gray-700)]">종합 점수</span>

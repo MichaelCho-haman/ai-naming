@@ -5,6 +5,11 @@ import { useRouter } from 'next/navigation';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Card from '@/components/ui/Card';
+import {
+  buildNamingRequestFingerprint,
+  getCachedNamingId,
+  setCachedNamingId,
+} from '@/lib/naming/request-cache';
 
 const KEYWORD_OPTIONS = [
   '강인한', '지적인', '따뜻한', '밝은', '고귀한',
@@ -61,20 +66,35 @@ export default function NamingPage() {
       // 입력 완료 → 바로 작명 API 호출
       setSubmitting(true);
       try {
+        const payload = {
+          lastName: lastName.trim(),
+          gender,
+          birthYear: birthYear ? Number(birthYear) : undefined,
+          birthMonth: birthMonth ? Number(birthMonth) : undefined,
+          birthDay: birthDay ? Number(birthDay) : undefined,
+          birthHour: birthHour ? Number(birthHour) : undefined,
+          birthMinute: birthMinute ? Number(birthMinute) : undefined,
+          keywords: selectedKeywords.join(', ') || undefined,
+          koreanNameOnly,
+        };
+        const fingerprint = buildNamingRequestFingerprint(payload);
+        const cachedNamingId = getCachedNamingId(fingerprint);
+
+        if (cachedNamingId) {
+          const checkRes = await fetch(`/api/naming/${cachedNamingId}`);
+          if (checkRes.ok) {
+            const checkJson = await checkRes.json();
+            if (checkJson.generationStatus !== 'failed') {
+              router.push(`/success?naming_id=${cachedNamingId}`);
+              return;
+            }
+          }
+        }
+
         const res = await fetch('/api/naming/create', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            lastName: lastName.trim(),
-            gender,
-            birthYear: birthYear ? Number(birthYear) : undefined,
-            birthMonth: birthMonth ? Number(birthMonth) : undefined,
-            birthDay: birthDay ? Number(birthDay) : undefined,
-            birthHour: birthHour ? Number(birthHour) : undefined,
-            birthMinute: birthMinute ? Number(birthMinute) : undefined,
-            keywords: selectedKeywords.join(', ') || undefined,
-            koreanNameOnly,
-          }),
+          body: JSON.stringify(payload),
         });
         const data = await res.json();
         if (!res.ok) {
@@ -82,6 +102,7 @@ export default function NamingPage() {
           setSubmitting(false);
           return;
         }
+        setCachedNamingId(fingerprint, data.namingId);
         router.push(`/success?naming_id=${data.namingId}`);
       } catch {
         setError('네트워크 오류가 발생했습니다');
