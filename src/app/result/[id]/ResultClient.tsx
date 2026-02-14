@@ -236,6 +236,10 @@ function NameCard({
   locked: boolean;
   onToggle: () => void;
 }) {
+  const isNativeKoreanName =
+    name.hanjaName === '순한글' ||
+    name.hanjaChars.every((char) => char.character === '-' || char.element === '순한글');
+
   const scoreColor =
     name.score >= 90 ? 'text-green-600 bg-green-50' :
     name.score >= 80 ? 'text-blue-600 bg-blue-50' :
@@ -274,24 +278,26 @@ function NameCard({
 
       {expanded && !locked && (
         <div className="mt-5 pt-5 border-t border-[var(--gray-100)] space-y-5 animate-fade-in">
-          <div>
-            <h4 className="text-sm font-semibold text-[var(--gray-700)] mb-3">한자 의미</h4>
-            <div className="space-y-2">
-              {name.hanjaChars.map((char, i) => (
-                <div key={i} className="flex items-start gap-3 bg-[var(--gray-50)] rounded-xl p-3">
-                  <span className="text-2xl font-serif">{char.character}</span>
-                  <div className="flex-1">
-                    <div className="text-sm font-medium text-[var(--gray-900)]">{char.meaning}</div>
-                    <div className="text-xs text-[var(--gray-400)] mt-0.5">
-                      {char.strokes}획 · {char.element}
+          {!isNativeKoreanName && (
+            <div>
+              <h4 className="text-sm font-semibold text-[var(--gray-700)] mb-3">한자 의미</h4>
+              <div className="space-y-2">
+                {name.hanjaChars.map((char, i) => (
+                  <div key={i} className="flex items-start gap-3 bg-[var(--gray-50)] rounded-xl p-3">
+                    <span className="text-2xl font-serif">{char.character}</span>
+                    <div className="flex-1">
+                      <div className="text-sm font-medium text-[var(--gray-900)]">{char.meaning}</div>
+                      <div className="text-xs text-[var(--gray-400)] mt-0.5">
+                        {char.strokes}획 · {char.element}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
-          {name.fiveElements && (
+          {!isNativeKoreanName && name.fiveElements && (
             <div>
               <h4 className="text-sm font-semibold text-[var(--gray-700)] mb-2">음양오행</h4>
               <p className="text-sm text-[var(--gray-600)] leading-relaxed">{name.fiveElements}</p>
