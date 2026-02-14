@@ -4,6 +4,8 @@ import { parseNamingResponse } from './sections';
 import type { NamingResult } from '@/types';
 import { HANJA_STROKES, getHanjaStrokeEntry } from '@/lib/hanja/stroke-db';
 import {
+  type NativeKoreanNameEntry,
+  type NativeNameTag,
   NATIVE_KOREAN_NAME_SOURCE,
   pickNativeKoreanNames,
 } from '@/lib/korean/native-name-db';
@@ -149,26 +151,63 @@ function createFallbackHanjaSuggestion(lastName: string, offset: number): NameSu
 
 function createNativeSuggestion(
   lastName: string,
-  givenName: string,
+  nativeEntry: NativeKoreanNameEntry,
   score: number
 ): NameSuggestion {
-  const particle = getTopicParticle(givenName);
+  const particle = getTopicParticle(nativeEntry.name);
   return {
-    koreanName: `${lastName}${givenName}`,
+    koreanName: `${lastName}${nativeEntry.name}`,
     hanjaName: '순한글',
     hanjaChars: [
       {
         character: '-',
-        meaning: `${givenName}${particle} 순한글 이름(한자 미사용)입니다.`,
+        meaning: nativeEntry.meaning,
         strokes: 0,
         element: '순한글',
       },
     ],
     strokeAnalysis: emptyStrokeAnalysis(),
-    fiveElements: `${givenName}${particle} 부드럽고 따뜻한 순한글 느낌을 살린 이름입니다.`,
-    energyInterpretation: `${NATIVE_KOREAN_NAME_SOURCE} 목록에서 고른 순한글 이름입니다.`,
+    fiveElements: `${nativeEntry.name}${particle} 한자를 쓰지 않고 뜻 중심으로 추천한 순한글 이름입니다.`,
+    energyInterpretation: nativeEntry.meaning,
     score,
   };
+}
+
+function extractPreferredTags(
+  params: { keywords?: string },
+  topHanjaName?: NameSuggestion
+): NativeNameTag[] {
+  const text = [
+    params.keywords ?? '',
+    topHanjaName?.fiveElements ?? '',
+    topHanjaName?.energyInterpretation ?? '',
+    topHanjaName?.koreanName ?? '',
+  ].join(' ');
+
+  const tagRules: Array<{ pattern: RegExp; tags: NativeNameTag[] }> = [
+    { pattern: /강|당당|리더|추진|용기|도전|기백|힘차|우직/, tags: ['강인', '활기'] },
+    { pattern: /지혜|총명|슬기|통찰|현명|똑똑|학문/, tags: ['지혜', '차분'] },
+    { pattern: /따뜻|온화|배려|포근|사랑|다정|감성/, tags: ['따뜻'] },
+    { pattern: /밝|환하|명랑|긍정|빛|반짝/, tags: ['밝음', '희망'] },
+    { pattern: /차분|안정|평온|고요|침착/, tags: ['차분'] },
+    { pattern: /고급|세련|품격|고귀|우아|기품/, tags: ['고급'] },
+    { pattern: /자연|숲|물|바다|하늘|나무|산|바람|강/, tags: ['자연'] },
+    { pattern: /맑|깨끗|순수|청아|투명/, tags: ['맑음'] },
+    { pattern: /희망|성장|미래|축복|행복|성취/, tags: ['희망'] },
+  ];
+
+  const collected: NativeNameTag[] = [];
+  for (const rule of tagRules) {
+    if (rule.pattern.test(text)) {
+      collected.push(...rule.tags);
+    }
+  }
+
+  const unique = Array.from(new Set(collected));
+  if (unique.length > 0) {
+    return unique;
+  }
+  return ['밝음', '따뜻'];
 }
 
 function buildSeed(params: {
@@ -242,14 +281,16 @@ function composeFinalSuggestions(
     usedGivenNames.add(fallbackGivenName);
   }
 
-  const nativeGivenNames = pickNativeKoreanNames({
+  const preferredTags = extractPreferredTags(params, selectedHanja[0]);
+  const nativeNames = pickNativeKoreanNames({
     count: NATIVE_NAME_COUNT,
     seed: buildSeed(params),
     excludeNames: Array.from(usedGivenNames),
+    preferredTags,
   });
 
-  const nativeSuggestions = nativeGivenNames.map((name, index) =>
-    createNativeSuggestion(params.lastName, name, 84 - index * 3)
+  const nativeSuggestions = nativeNames.map((entry, index) =>
+    createNativeSuggestion(params.lastName, entry, 84 - index * 3)
   );
 
   return [...selectedHanja, ...nativeSuggestions];
