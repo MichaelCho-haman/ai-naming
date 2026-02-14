@@ -6,7 +6,6 @@ import { HANJA_STROKES, getHanjaStrokeEntry } from '@/lib/hanja/stroke-db';
 import {
   type NativeKoreanNameEntry,
   type NativeNameTag,
-  NATIVE_KOREAN_NAME_SOURCE,
   pickNativeKoreanNames,
 } from '@/lib/korean/native-name-db';
 
@@ -325,7 +324,7 @@ export async function generateNaming(params: {
 
   const raw = response.choices[0]?.message?.content || '';
   const parsed = parseNamingResponse(raw);
-  const mixGuide = `추천 구성: 한자 이름 3개 + 순한글 이름 2개 (${NATIVE_KOREAN_NAME_SOURCE} 기반)`;
+  const mixGuide = '추천 구성: 한자 이름 3개 + 순한글 이름 2개';
 
   const basePhilosophy = parsed.philosophy?.trim();
   const result: NamingResult = {
