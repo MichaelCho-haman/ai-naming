@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { IAP } from '@apps-in-toss/web-framework';
+import { IAP, appLogin } from '@apps-in-toss/web-framework';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import { NamingResult, NameSuggestion } from '@/types';
@@ -14,6 +14,11 @@ interface Props {
   result: NamingResult;
   paymentStatus: 'pending' | 'free' | 'paid' | 'failed';
   isTossTarget: boolean;
+}
+
+interface TossLoginUserKeyResponse {
+  ok: boolean;
+  userKey: string;
 }
 
 function getErrorMessage(error: unknown, fallback: string) {
@@ -30,6 +35,56 @@ function isTossAppWebView() {
     ReactNativeWebView?: { postMessage?: (message: string) => void };
   };
   return typeof maybeWindow.ReactNativeWebView?.postMessage === 'function';
+}
+
+function getStoredUserKey() {
+  const userKey =
+    window.localStorage.getItem('toss_user_key') ||
+    (window as Window & { __TOSS_USER_KEY__?: string }).__TOSS_USER_KEY__;
+  return typeof userKey === 'string' ? userKey.trim() : '';
+}
+
+function saveUserKey(userKey: string) {
+  window.localStorage.setItem('toss_user_key', userKey);
+  (window as Window & { __TOSS_USER_KEY__?: string }).__TOSS_USER_KEY__ = userKey;
+}
+
+async function ensureUserKey() {
+  const storedUserKey = getStoredUserKey();
+  if (storedUserKey) return storedUserKey;
+
+  if (!isTossAppWebView()) {
+    throw new Error('토스 앱에서만 결제가 가능합니다.');
+  }
+
+  const loginResult = await appLogin();
+  const authorizationCode =
+    typeof loginResult?.authorizationCode === 'string' ? loginResult.authorizationCode.trim() : '';
+  const referrer = typeof loginResult?.referrer === 'string' ? loginResult.referrer : '';
+
+  if (!authorizationCode || !referrer) {
+    throw new Error('토스 로그인 응답이 올바르지 않습니다.');
+  }
+
+  const res = await fetch('/api/toss/login/user-key', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ authorizationCode, referrer }),
+  });
+  const data = (await res.json()) as Partial<TossLoginUserKeyResponse> & { error?: string };
+  if (!res.ok) {
+    throw new Error(data.error || '토스 로그인 처리에 실패했습니다.');
+  }
+
+  const normalizedUserKey = typeof data?.userKey === 'string' ? data.userKey.trim() : '';
+  if (!normalizedUserKey) {
+    throw new Error('토스 로그인에서 userKey를 확인하지 못했습니다.');
+  }
+
+  saveUserKey(normalizedUserKey);
+  return normalizedUserKey;
 }
 
 export default function ResultClient({ namingId, lastName, result, paymentStatus, isTossTarget }: Props) {
@@ -75,13 +130,7 @@ export default function ResultClient({ namingId, lastName, result, paymentStatus
       if (!isTossAppWebView()) {
         throw new Error('토스 앱에서만 결제가 가능합니다.');
       }
-      const userKey =
-        window.localStorage.getItem('toss_user_key') ||
-        (window as Window & { __TOSS_USER_KEY__?: string }).__TOSS_USER_KEY__;
-      const normalizedUserKey = typeof userKey === 'string' ? userKey.trim() : '';
-      if (!normalizedUserKey) {
-        throw new Error('토스 로그인 정보(userKey)를 확인하지 못했습니다. 토스 앱에서 다시 시도해주세요.');
-      }
+      const normalizedUserKey = await ensureUserKey();
 
       const completePayment = async (orderId: string) => {
         const res = await fetch('/api/iap/complete', {
