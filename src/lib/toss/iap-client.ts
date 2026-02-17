@@ -18,6 +18,88 @@ interface TossApiResponse {
   [key: string]: unknown;
 }
 
+function walkDeep(
+  input: unknown,
+  visitor: (value: unknown, key?: string) => boolean | void,
+  depth = 0,
+  visited = new WeakSet<object>()
+) {
+  if (depth > 6) return;
+  if (input === null || input === undefined) return;
+
+  const stop = visitor(input);
+  if (stop === true) return;
+
+  if (typeof input !== 'object') return;
+  const obj = input as object;
+  if (visited.has(obj)) return;
+  visited.add(obj);
+
+  if (Array.isArray(input)) {
+    for (const item of input) {
+      walkDeep(item, visitor, depth + 1, visited);
+    }
+    return;
+  }
+
+  const entries = Object.entries(input as Record<string, unknown>);
+  for (const [key, value] of entries) {
+    const shouldStop = visitor(value, key);
+    if (shouldStop === true) return;
+    walkDeep(value, visitor, depth + 1, visited);
+  }
+}
+
+function findFirstDeepByKeys(input: unknown, keys: string[]) {
+  const keySet = new Set(keys.map((key) => key.toLowerCase()));
+  let found: unknown = undefined;
+  walkDeep(input, (value, key) => {
+    if (found !== undefined) return true;
+    if (!key) return;
+    if (keySet.has(key.toLowerCase()) && value !== undefined && value !== null) {
+      found = value;
+      return true;
+    }
+  });
+  return found;
+}
+
+function findAnyDeepBooleanTrue(input: unknown, keys: string[]) {
+  const keySet = new Set(keys.map((key) => key.toLowerCase()));
+  let matched = false;
+  walkDeep(input, (value, key) => {
+    if (matched) return true;
+    if (!key) return;
+    if (keySet.has(key.toLowerCase()) && value === true) {
+      matched = true;
+      return true;
+    }
+  });
+  return matched;
+}
+
+function collectDeepStatuses(input: unknown) {
+  const statusKeys = new Set(
+    ['status', 'orderStatus', 'purchaseStatus', 'paymentStatus', 'state', 'purchaseState'].map((key) =>
+      key.toLowerCase()
+    )
+  );
+  const statuses: string[] = [];
+
+  walkDeep(input, (value, key) => {
+    if (!key) return;
+    if (!statusKeys.has(key.toLowerCase())) return;
+    if (typeof value !== 'string' && typeof value !== 'number') return;
+    const normalized = String(value).toUpperCase().trim();
+    if (!normalized) return;
+    if (!statuses.includes(normalized)) {
+      statuses.push(normalized);
+    }
+  });
+
+  return statuses;
+}
+
 function readPemValue(inlineValue?: string, pathValue?: string) {
   if (inlineValue) return inlineValue;
   if (pathValue) return readFileSync(pathValue, 'utf-8');
@@ -125,28 +207,7 @@ export async function getTossOrderStatus({ orderId, userKey }: TossOrderStatusRe
 }
 
 export function isTossOrderPaid(payload: TossApiResponse) {
-  const success = (payload?.success ?? {}) as Record<string, unknown>;
-  const data = (payload?.data ?? {}) as Record<string, unknown>;
-  const root = payload as Record<string, unknown>;
-
-  const rawStatus =
-    success.status ??
-    success.orderStatus ??
-    success.purchaseStatus ??
-    success.paymentStatus ??
-    success.state ??
-    success.purchaseState ??
-    data.orderStatus ??
-    data.status ??
-    data.purchaseStatus ??
-    data.paymentStatus ??
-    data.state ??
-    data.purchaseState ??
-    root.orderStatus ??
-    root.status ??
-    root.state;
-
-  const status = String(rawStatus ?? '').toUpperCase().trim();
+  const statusCandidates = collectDeepStatuses(payload);
 
   const paidLikeStatuses = new Set([
     'COMPLETE',
@@ -172,26 +233,21 @@ export function isTossOrderPaid(payload: TossApiResponse) {
     'WAITING',
   ]);
 
-  if (paidLikeStatuses.has(status)) return true;
-  if (failedLikeStatuses.has(status)) return false;
+  const hasPaidLikeStatus = statusCandidates.some((status) => paidLikeStatuses.has(status));
+  const hasFailedLikeStatus = statusCandidates.some((status) => failedLikeStatuses.has(status));
 
-  if (
-    success.isCompleted === true ||
-    success.isPaid === true ||
-    success.purchased === true ||
-    data.isCompleted === true ||
-    data.isPaid === true ||
-    data.purchased === true
-  ) {
+  if (hasPaidLikeStatus) return true;
+  if (hasFailedLikeStatus) return false;
+
+  if (findAnyDeepBooleanTrue(payload, ['isCompleted', 'isPaid', 'purchased', 'paid', 'granted'])) {
     return true;
   }
 
-  // 응답 코드가 성공인데 상태 문자열만 예외적으로 들어온 경우를 보완
-  if (typeof payload.code === 'string' && payload.code.toUpperCase() === 'SUCCESS' && status) {
-    return !failedLikeStatuses.has(status);
+  const rawCode = findFirstDeepByKeys(payload, ['code', 'resultType', 'result_code']);
+  const code = String(rawCode ?? '').toUpperCase().trim();
+  if (code === 'SUCCESS' && statusCandidates.length > 0) {
+    return !hasFailedLikeStatus;
   }
-  if (typeof payload.resultType === 'string' && payload.resultType.toUpperCase() === 'SUCCESS' && status) {
-    return !failedLikeStatuses.has(status);
-  }
+
   return false;
 }

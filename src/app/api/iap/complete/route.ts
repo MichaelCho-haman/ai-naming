@@ -15,28 +15,46 @@ function sleep(ms: number) {
 
 function pickStatusHint(raw: unknown) {
   if (!raw || typeof raw !== 'object') return null;
-  const obj = raw as Record<string, unknown>;
-  const success = (obj.success ?? {}) as Record<string, unknown>;
-  const data = (obj.data ?? {}) as Record<string, unknown>;
-  const status =
-    success.status ??
-    success.orderStatus ??
-    success.purchaseStatus ??
-    success.paymentStatus ??
-    success.state ??
-    data.status ??
-    data.orderStatus ??
-    data.purchaseStatus ??
-    data.paymentStatus ??
-    data.state ??
-    obj.status ??
-    obj.orderStatus ??
-    obj.state;
-  const code = obj.code ?? obj.resultType;
+  const targetKeys = ['status', 'orderStatus', 'purchaseStatus', 'paymentStatus', 'state', 'purchaseState'];
+  const codeKeys = ['code', 'resultType', 'result_code'];
+  let status: unknown = null;
+  let code: unknown = null;
+  let message: unknown = null;
+
+  const visited = new WeakSet<object>();
+  const walk = (value: unknown, depth = 0) => {
+    if (depth > 6) return;
+    if (value === null || value === undefined) return;
+    if (typeof value !== 'object') return;
+    const obj = value as object;
+    if (visited.has(obj)) return;
+    visited.add(obj);
+
+    if (Array.isArray(value)) {
+      for (const item of value) walk(item, depth + 1);
+      return;
+    }
+
+    for (const [key, child] of Object.entries(value as Record<string, unknown>)) {
+      const lowered = key.toLowerCase();
+      if (status === null && targetKeys.some((k) => k.toLowerCase() === lowered) && child !== null && child !== undefined) {
+        status = child;
+      }
+      if (code === null && codeKeys.some((k) => k.toLowerCase() === lowered) && child !== null && child !== undefined) {
+        code = child;
+      }
+      if (message === null && lowered === 'message' && child !== null && child !== undefined) {
+        message = child;
+      }
+      walk(child, depth + 1);
+    }
+  };
+
+  walk(raw);
   return {
     status: status ?? null,
     code: code ?? null,
-    message: obj.message ?? null,
+    message: message ?? null,
   };
 }
 
