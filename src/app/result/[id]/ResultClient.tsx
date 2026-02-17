@@ -78,15 +78,19 @@ export default function ResultClient({ namingId, lastName, result, paymentStatus
       const userKey =
         window.localStorage.getItem('toss_user_key') ||
         (window as Window & { __TOSS_USER_KEY__?: string }).__TOSS_USER_KEY__;
+      const normalizedUserKey = typeof userKey === 'string' ? userKey.trim() : '';
+      if (!normalizedUserKey) {
+        throw new Error('토스 로그인 정보(userKey)를 확인하지 못했습니다. 토스 앱에서 다시 시도해주세요.');
+      }
 
       const completePayment = async (orderId: string) => {
         const res = await fetch('/api/iap/complete', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            ...(userKey ? { 'x-toss-user-key': userKey } : {}),
+            'x-toss-user-key': normalizedUserKey,
           },
-          body: JSON.stringify({ namingId, orderId, userKey }),
+          body: JSON.stringify({ namingId, orderId, userKey: normalizedUserKey }),
         });
         const data = await res.json();
         if (!res.ok) {
