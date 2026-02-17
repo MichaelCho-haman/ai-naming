@@ -254,12 +254,16 @@ function NameCard({
               {rank}
             </div>
             <div>
-              <div className="flex items-baseline gap-2">
-                <span className="text-xl font-bold text-[var(--gray-900)]">
-                  {locked ? '결제 후 공개' : `${lastName}${name.koreanName.replace(new RegExp(`^${lastName}`), '')}`}
-                </span>
-                <span className="text-sm text-[var(--gray-400)]">{locked ? '잠금' : name.hanjaName || '한자 미제공'}</span>
-              </div>
+              {locked ? (
+                <div className="text-xl font-bold text-[var(--gray-300)] tracking-[0.3em]">•••</div>
+              ) : (
+                <div className="flex items-baseline gap-2">
+                  <span className="text-xl font-bold text-[var(--gray-900)]">
+                    {`${lastName}${name.koreanName.replace(new RegExp(`^${lastName}`), '')}`}
+                  </span>
+                  <span className="text-sm text-[var(--gray-400)]">{name.hanjaName || '한자 미제공'}</span>
+                </div>
+              )}
             </div>
           </div>
           {!locked && (
@@ -271,7 +275,7 @@ function NameCard({
       </button>
 
       {locked && (
-        <div className="absolute inset-0 backdrop-blur-[3px] bg-white/55 flex items-center justify-center">
+        <div className="absolute inset-0 bg-white/90 flex items-center justify-center">
           <div className="text-sm font-semibold text-[var(--gray-700)]">결제 후 전체 공개</div>
         </div>
       )}
