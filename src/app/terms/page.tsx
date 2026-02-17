@@ -27,7 +27,7 @@ export default function TermsPage() {
           <section>
             <h2 className="text-lg font-bold text-[var(--gray-900)]">3. 결제 및 환불</h2>
             <ul className="list-disc list-inside space-y-1">
-              <li>서비스 요금: ₩990 (일회성)</li>
+              <li>서비스 요금: ₩550 (일회성)</li>
               <li>디지털 콘텐츠 특성상 결과 생성 후 환불 불가</li>
               <li>기술적 문제로 결과를 받지 못한 경우 재생성 또는 환불 가능</li>
             </ul>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { IAP, appLogin } from '@apps-in-toss/web-framework';
 import Card from '@/components/ui/Card';
@@ -19,6 +19,19 @@ interface Props {
 interface TossLoginUserKeyResponse {
   ok: boolean;
   userKey: string;
+}
+
+interface IapCompleteSuccessResponse {
+  ok: boolean;
+  paymentStatus: 'pending' | 'free' | 'paid' | 'failed';
+  orderId?: string;
+}
+
+interface IapCompleteErrorResponse {
+  error?: string;
+  details?: unknown;
+  orderStatus?: unknown;
+  rawOrderStatus?: unknown;
 }
 
 function getErrorMessage(error: unknown, fallback: string) {
@@ -47,6 +60,38 @@ function getStoredUserKey() {
 function saveUserKey(userKey: string) {
   window.localStorage.setItem('toss_user_key', userKey);
   (window as Window & { __TOSS_USER_KEY__?: string }).__TOSS_USER_KEY__ = userKey;
+}
+
+function getOrderStorageKey(namingId: string) {
+  return `toss_last_order_id:${namingId}`;
+}
+
+function getStoredOrderId(namingId: string) {
+  const value = window.localStorage.getItem(getOrderStorageKey(namingId));
+  return typeof value === 'string' ? value.trim() : '';
+}
+
+function saveOrderId(namingId: string, orderId: string) {
+  window.localStorage.setItem(getOrderStorageKey(namingId), orderId);
+}
+
+function clearOrderId(namingId: string) {
+  window.localStorage.removeItem(getOrderStorageKey(namingId));
+}
+
+function formatDebugPayload(payload: unknown) {
+  if (!payload) return '';
+  try {
+    return JSON.stringify(payload, null, 2);
+  } catch {
+    return String(payload);
+  }
+}
+
+function createErrorWithDebug(message: string, debug?: string) {
+  const error = new Error(message) as Error & { debug?: string };
+  error.debug = debug;
+  return error;
 }
 
 async function ensureUserKey() {
@@ -93,6 +138,17 @@ export default function ResultClient({ namingId, lastName, result, paymentStatus
   const [currentPaymentStatus, setCurrentPaymentStatus] = useState(paymentStatus);
   const [unlocking, setUnlocking] = useState(false);
   const [unlockError, setUnlockError] = useState('');
+  const [unlockDebug, setUnlockDebug] = useState('');
+  const [lastOrderId, setLastOrderId] = useState('');
+
+  useEffect(() => {
+    if (currentPaymentStatus === 'paid') {
+      clearOrderId(namingId);
+      setLastOrderId('');
+      return;
+    }
+    setLastOrderId(getStoredOrderId(namingId));
+  }, [namingId, currentPaymentStatus]);
 
   const isLockedMode = isTossTarget && currentPaymentStatus !== 'paid';
   const lockedCount = Math.max(result.names.length - 1, 0);
@@ -120,6 +176,7 @@ export default function ResultClient({ namingId, lastName, result, paymentStatus
 
   const handleUnlock = async () => {
     setUnlockError('');
+    setUnlockDebug('');
     setUnlocking(true);
 
     try {
@@ -133,6 +190,9 @@ export default function ResultClient({ namingId, lastName, result, paymentStatus
       const normalizedUserKey = await ensureUserKey();
 
       const completePayment = async (orderId: string) => {
+        saveOrderId(namingId, orderId);
+        setLastOrderId(orderId);
+
         const res = await fetch('/api/iap/complete', {
           method: 'POST',
           headers: {
@@ -141,9 +201,19 @@ export default function ResultClient({ namingId, lastName, result, paymentStatus
           },
           body: JSON.stringify({ namingId, orderId, userKey: normalizedUserKey }),
         });
-        const data = await res.json();
-        if (!res.ok) {
-          throw new Error(data.error || '결제 처리에 실패했습니다');
+
+        const json = (await res.json()) as IapCompleteSuccessResponse | IapCompleteErrorResponse;
+        const isSuccessResponse =
+          typeof json === 'object' && json !== null && 'ok' in json && (json as IapCompleteSuccessResponse).ok === true;
+        if (!res.ok || !isSuccessResponse) {
+          const errRes = json as IapCompleteErrorResponse;
+          const debug = formatDebugPayload({
+            status: res.status,
+            details: errRes.details ?? null,
+            orderStatus: errRes.orderStatus ?? null,
+            rawOrderStatus: errRes.rawOrderStatus ?? null,
+          });
+          throw createErrorWithDebug(errRes.error || '결제 처리에 실패했습니다', debug);
         }
       };
 
@@ -205,11 +275,66 @@ export default function ResultClient({ namingId, lastName, result, paymentStatus
       });
 
       setCurrentPaymentStatus('paid');
+      clearOrderId(namingId);
+      setLastOrderId('');
       setUnlocking(false);
       router.refresh();
     } catch (error) {
       const message = getErrorMessage(error, '결제 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+      const debug =
+        typeof error === 'object' && error !== null && 'debug' in error
+          ? String((error as { debug?: unknown }).debug || '')
+          : '';
       setUnlockError(message);
+      setUnlockDebug(debug);
+      setUnlocking(false);
+    }
+  };
+
+  const handleRetryLastOrder = async () => {
+    if (!lastOrderId) return;
+
+    setUnlockError('');
+    setUnlockDebug('');
+    setUnlocking(true);
+
+    try {
+      const normalizedUserKey = await ensureUserKey();
+      const res = await fetch('/api/iap/complete', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-toss-user-key': normalizedUserKey,
+        },
+        body: JSON.stringify({ namingId, orderId: lastOrderId, userKey: normalizedUserKey }),
+      });
+      const json = (await res.json()) as IapCompleteSuccessResponse | IapCompleteErrorResponse;
+      const isSuccessResponse =
+        typeof json === 'object' && json !== null && 'ok' in json && (json as IapCompleteSuccessResponse).ok === true;
+      if (!res.ok || !isSuccessResponse) {
+        const errRes = json as IapCompleteErrorResponse;
+        const debug = formatDebugPayload({
+          status: res.status,
+          details: errRes.details ?? null,
+          orderStatus: errRes.orderStatus ?? null,
+          rawOrderStatus: errRes.rawOrderStatus ?? null,
+        });
+        throw createErrorWithDebug(errRes.error || '재검증에 실패했습니다.', debug);
+      }
+
+      setCurrentPaymentStatus('paid');
+      clearOrderId(namingId);
+      setLastOrderId('');
+      setUnlocking(false);
+      router.refresh();
+    } catch (error) {
+      const message = getErrorMessage(error, '재검증 중 오류가 발생했습니다.');
+      const debug =
+        typeof error === 'object' && error !== null && 'debug' in error
+          ? String((error as { debug?: unknown }).debug || '')
+          : '';
+      setUnlockError(message);
+      setUnlockDebug(debug);
       setUnlocking(false);
     }
   };
@@ -260,6 +385,16 @@ export default function ResultClient({ namingId, lastName, result, paymentStatus
             {unlocking ? '결제 확인 중...' : '550원 결제로 전체 이름 보기'}
           </Button>
           {unlockError && <p className="text-red-500 text-sm mt-3">{unlockError}</p>}
+          {lastOrderId && (
+            <Button onClick={handleRetryLastOrder} disabled={unlocking} variant="secondary" className="mt-3">
+              마지막 결제 재검증
+            </Button>
+          )}
+          {unlockDebug && (
+            <pre className="mt-3 p-3 text-[11px] leading-5 bg-[var(--gray-900)] text-white rounded-xl overflow-auto whitespace-pre-wrap">
+{unlockDebug}
+            </pre>
+          )}
         </Card>
       )}
 

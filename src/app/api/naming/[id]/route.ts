@@ -28,6 +28,8 @@ export async function GET(
     namingContent: naming.naming_content,
     paymentStatus: naming.payment_status,
     generationStatus: naming.generation_status,
+    orderId: naming.order_id,
+    paidAt: naming.paid_at,
     createdAt: naming.created_at,
   });
 }

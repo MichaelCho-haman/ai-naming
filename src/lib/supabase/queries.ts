@@ -14,6 +14,7 @@ export async function createNaming(params: {
   birthHour?: number;
   birthMinute?: number;
   keywords?: string;
+  paymentStatus?: 'pending' | 'free';
 }) {
   const { error } = await db().from('namings').insert({
     id: params.id,
@@ -25,8 +26,9 @@ export async function createNaming(params: {
     birth_hour: params.birthHour,
     birth_minute: params.birthMinute,
     keywords: params.keywords,
-    payment_status: 'free',
+    payment_status: params.paymentStatus ?? 'pending',
     generation_status: 'pending',
+    amount_cents: 550,
   });
 
   if (error) throw new Error(`Failed to create naming: ${error.message}`);
@@ -66,11 +68,23 @@ export async function saveNamingResult(
 // 결제 상태 업데이트
 export async function updatePaymentStatus(
   id: string,
-  status: 'pending' | 'free' | 'paid' | 'failed'
+  status: 'pending' | 'free' | 'paid' | 'failed',
+  options?: {
+    orderId?: string | null;
+    paidAt?: string | null;
+  }
 ) {
+  const updatePayload: Record<string, unknown> = { payment_status: status };
+  if (options && Object.prototype.hasOwnProperty.call(options, 'orderId')) {
+    updatePayload.order_id = options.orderId ?? null;
+  }
+  if (options && Object.prototype.hasOwnProperty.call(options, 'paidAt')) {
+    updatePayload.paid_at = options.paidAt ?? null;
+  }
+
   const { error } = await db()
     .from('namings')
-    .update({ payment_status: status })
+    .update(updatePayload)
     .eq('id', id);
 
   if (error) throw new Error(`Failed to update payment status: ${error.message}`);

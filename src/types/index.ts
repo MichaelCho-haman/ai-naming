@@ -54,6 +54,8 @@ export interface Naming {
   namingContent: NamingResult | null;
   namingRaw: string | null;
   paymentStatus: 'pending' | 'free' | 'paid' | 'failed';
+  orderId?: string | null;
+  paidAt?: string | null;
   generationStatus: 'pending' | 'generating' | 'completed' | 'failed';
   createdAt: string;
   viewCount: number;

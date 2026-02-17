@@ -89,12 +89,26 @@ export async function POST(req: NextRequest) {
     }
 
     if (naming.payment_status === 'paid') {
-      return jsonWithCors(req, { ok: true, paymentStatus: 'paid' });
+      return jsonWithCors(req, {
+        ok: true,
+        paymentStatus: 'paid',
+        orderId: naming.order_id ?? undefined,
+        paidAt: naming.paid_at ?? undefined,
+      });
     }
 
     if (allowMock && !orderId) {
-      await updatePaymentStatus(namingId, 'paid');
-      return jsonWithCors(req, { ok: true, paymentStatus: 'paid', mocked: true });
+      const paidAt = new Date().toISOString();
+      await updatePaymentStatus(namingId, 'paid', {
+        orderId: null,
+        paidAt,
+      });
+      return jsonWithCors(req, {
+        ok: true,
+        paymentStatus: 'paid',
+        mocked: true,
+        paidAt,
+      });
     }
 
     if (!orderId || typeof orderId !== 'string') {
@@ -168,12 +182,17 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    await updatePaymentStatus(namingId, 'paid');
+    const paidAt = new Date().toISOString();
+    await updatePaymentStatus(namingId, 'paid', {
+      orderId,
+      paidAt,
+    });
 
     return jsonWithCors(req, {
       ok: true,
       paymentStatus: 'paid',
       orderId,
+      paidAt,
     });
   } catch (error) {
     console.error('IAP complete error:', error);

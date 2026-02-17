@@ -6,6 +6,8 @@ import { generateNaming } from '@/lib/gpt/naming-generator';
 import { jsonWithCors, preflight } from '@/lib/http/cors';
 
 export const maxDuration = 60;
+const appTarget = process.env.NEXT_PUBLIC_APP_TARGET ?? 'web';
+const defaultPaymentStatus = appTarget === 'toss' ? 'pending' : 'free';
 
 export async function OPTIONS(req: NextRequest) {
   return preflight(req);
@@ -34,6 +36,7 @@ export async function POST(req: NextRequest) {
       birthHour,
       birthMinute,
       keywords: keywords || undefined,
+      paymentStatus: defaultPaymentStatus,
     });
 
     // after()로 응답 후에도 함수가 살아있도록 보장
