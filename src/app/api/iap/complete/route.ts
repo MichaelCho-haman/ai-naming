@@ -3,12 +3,41 @@ import { getNaming, updatePaymentStatus } from '@/lib/supabase/queries';
 import { getTossOrderStatus, isTossOrderPaid } from '@/lib/toss/iap-client';
 import { jsonWithCors, preflight } from '@/lib/http/cors';
 
+export const runtime = 'nodejs';
+
 const allowMock = process.env.ALLOW_IAP_MOCK === 'true';
 const verifyRetries = Number(process.env.TOSS_IAP_VERIFY_RETRIES || '6');
 const verifyRetryDelayMs = Number(process.env.TOSS_IAP_VERIFY_RETRY_DELAY_MS || '350');
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function pickStatusHint(raw: unknown) {
+  if (!raw || typeof raw !== 'object') return null;
+  const obj = raw as Record<string, unknown>;
+  const success = (obj.success ?? {}) as Record<string, unknown>;
+  const data = (obj.data ?? {}) as Record<string, unknown>;
+  const status =
+    success.status ??
+    success.orderStatus ??
+    success.purchaseStatus ??
+    success.paymentStatus ??
+    success.state ??
+    data.status ??
+    data.orderStatus ??
+    data.purchaseStatus ??
+    data.paymentStatus ??
+    data.state ??
+    obj.status ??
+    obj.orderStatus ??
+    obj.state;
+  const code = obj.code ?? obj.resultType;
+  return {
+    status: status ?? null,
+    code: code ?? null,
+    message: obj.message ?? null,
+  };
 }
 
 async function verifyPaidOrderWithRetry(orderId: string, userKey: string) {
@@ -87,10 +116,17 @@ export async function POST(req: NextRequest) {
     const verification = await verifyPaidOrderWithRetry(orderId, userKey);
 
     if (!verification.ok && verification.response && (verification.response.status < 200 || verification.response.status >= 300)) {
+      const hint = pickStatusHint(verification.response.json);
+      console.error('IAP verify API failed', {
+        namingId,
+        orderId,
+        httpStatus: verification.response.status,
+        hint,
+      });
       return jsonWithCors(
         req,
         {
-          error: '토스 주문 검증 API 호출에 실패했습니다',
+          error: `토스 주문 검증 API 호출에 실패했습니다 (http:${verification.response.status}, status:${String(hint?.status ?? '-')} code:${String(hint?.code ?? '-')})`,
           details:
             verification.response.json?.message ||
             verification.response.json?.code ||
@@ -104,6 +140,7 @@ export async function POST(req: NextRequest) {
       const fallbackErrorMessage =
         verification.error instanceof Error ? verification.error.message : null;
       const responseJson = verification.response?.json ?? null;
+      const hint = pickStatusHint(responseJson);
       const responseSuccess =
         responseJson && typeof responseJson === 'object' && 'success' in responseJson
           ? (responseJson as { success?: unknown }).success
@@ -112,10 +149,17 @@ export async function POST(req: NextRequest) {
         responseJson && typeof responseJson === 'object' && 'data' in responseJson
           ? (responseJson as { data?: unknown }).data
           : null;
+      console.error('IAP verify not paid', {
+        namingId,
+        orderId,
+        hint,
+        responseJson,
+        fallbackErrorMessage,
+      });
       return jsonWithCors(
         req,
         {
-          error: '결제가 완료 상태가 아닙니다',
+          error: `결제가 완료 상태가 아닙니다 (status:${String(hint?.status ?? '-')} code:${String(hint?.code ?? '-')})`,
           orderStatus: responseSuccess ?? responseData,
           rawOrderStatus: responseJson,
           details: fallbackErrorMessage,
