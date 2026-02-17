@@ -121,6 +121,26 @@ export async function getLatestOrderIdByNamingId(id: string) {
   return typeof data?.order_id === 'string' ? data.order_id : null;
 }
 
+export async function findPaidNamingIdByOrderId(orderId: string) {
+  const normalizedOrderId = orderId.trim();
+  if (!normalizedOrderId) return null;
+
+  const { data, error } = await db()
+    .from('namings')
+    .select('id')
+    .eq('order_id', normalizedOrderId)
+    .eq('payment_status', 'paid')
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    console.error('Failed to find paid naming by order id:', error.message);
+    return null;
+  }
+
+  return typeof data?.id === 'string' ? data.id : null;
+}
+
 // 조회수 증가
 export async function incrementViewCount(id: string) {
   const naming = await getNaming(id);

@@ -1,13 +1,26 @@
 import { NextRequest } from 'next/server';
-import { getLatestOrderIdByNamingId, getNaming, insertPaymentLog, updatePaymentStatus } from '@/lib/supabase/queries';
+import {
+  findPaidNamingIdByOrderId,
+  getLatestOrderIdByNamingId,
+  getNaming,
+  insertPaymentLog,
+  updatePaymentStatus,
+} from '@/lib/supabase/queries';
 import { getTossOrderStatus, isTossOrderPaid } from '@/lib/toss/iap-client';
 import { jsonWithCors, preflight } from '@/lib/http/cors';
 
 export const runtime = 'nodejs';
 
-const allowMock = process.env.ALLOW_IAP_MOCK === 'true';
+const allowMock = process.env.NODE_ENV !== 'production' && process.env.ALLOW_IAP_MOCK === 'true';
 const verifyRetries = Number(process.env.TOSS_IAP_VERIFY_RETRIES || '6');
 const verifyRetryDelayMs = Number(process.env.TOSS_IAP_VERIFY_RETRY_DELAY_MS || '350');
+const expectedProductId = (
+  process.env.TOSS_IAP_PRODUCT_ID ||
+  process.env.NEXT_PUBLIC_TOSS_IAP_PRODUCT_ID ||
+  ''
+).trim();
+const expectedAmount = Number(process.env.TOSS_IAP_EXPECTED_AMOUNT || '550');
+const hasExpectedAmount = Number.isFinite(expectedAmount) && expectedAmount > 0;
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -63,6 +76,69 @@ function toNullableString(value: unknown) {
   if (typeof value === 'string') return value;
   if (typeof value === 'number' || typeof value === 'boolean') return String(value);
   return null;
+}
+
+function findFirstDeepValue(raw: unknown, targetKeys: string[]) {
+  if (!raw || typeof raw !== 'object') return null;
+  const keySet = new Set(targetKeys.map((key) => key.toLowerCase()));
+  let found: unknown = undefined;
+  const visited = new WeakSet<object>();
+
+  const walk = (value: unknown, depth = 0) => {
+    if (found !== undefined || depth > 6) return;
+    if (value === null || value === undefined) return;
+    if (typeof value !== 'object') return;
+    const obj = value as object;
+    if (visited.has(obj)) return;
+    visited.add(obj);
+
+    if (Array.isArray(value)) {
+      for (const item of value) {
+        walk(item, depth + 1);
+      }
+      return;
+    }
+
+    for (const [key, child] of Object.entries(value as Record<string, unknown>)) {
+      if (found === undefined && keySet.has(key.toLowerCase()) && child !== null && child !== undefined) {
+        found = child;
+        return;
+      }
+      walk(child, depth + 1);
+      if (found !== undefined) return;
+    }
+  };
+
+  walk(raw);
+  return found === undefined ? null : found;
+}
+
+function toNullableAmount(value: unknown) {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return Math.round(value);
+  }
+  if (typeof value !== 'string') return null;
+  const normalized = value.replace(/,/g, '').trim();
+  const numeric = Number(normalized);
+  if (Number.isFinite(numeric)) {
+    return Math.round(numeric);
+  }
+  const matched = normalized.match(/-?\d+(\.\d+)?/);
+  if (!matched) return null;
+  const parsed = Number(matched[0]);
+  return Number.isFinite(parsed) ? Math.round(parsed) : null;
+}
+
+function extractVerificationFields(raw: unknown) {
+  const rawOrderId = findFirstDeepValue(raw, ['orderId', 'order_id']);
+  const rawProductId = findFirstDeepValue(raw, ['sku', 'productId', 'product_id', 'itemId', 'item_id']);
+  const rawAmount = findFirstDeepValue(raw, ['amount', 'paymentAmount', 'paidAmount', 'price', 'totalAmount', 'displayAmount']);
+
+  const orderId = toNullableString(rawOrderId)?.trim() || null;
+  const productId = toNullableString(rawProductId)?.trim() || null;
+  const amount = toNullableAmount(rawAmount);
+
+  return { orderId, productId, amount };
 }
 
 function getErrorMessage(error: unknown, fallback: string) {
@@ -253,6 +329,24 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const paidNamingIdByOrderId = await findPaidNamingIdByOrderId(effectiveOrderId);
+    if (paidNamingIdByOrderId && paidNamingIdByOrderId !== namingId) {
+      await insertPaymentLog({
+        namingId,
+        orderId: effectiveOrderId,
+        result: 'failure',
+        phase: 'order_id_reused',
+        httpStatus: 409,
+        message: `이미 다른 결과에서 결제 완료된 orderId입니다 (owner:${paidNamingIdByOrderId})`,
+        requestId,
+      });
+      return jsonWithCors(
+        req,
+        { error: '이미 사용된 결제 주문번호입니다. 새로운 결제로 다시 시도해주세요.' },
+        { status: 409 }
+      );
+    }
+
     const verification = await verifyPaidOrderWithRetry(effectiveOrderId, userKey);
 
     if (!verification.ok && !verification.response) {
@@ -358,6 +452,84 @@ export async function POST(req: NextRequest) {
         },
         { status: 409 }
       );
+    }
+
+    const verificationFields = extractVerificationFields(verification.response?.json ?? null);
+
+    if (verificationFields.orderId && verificationFields.orderId !== effectiveOrderId) {
+      await insertPaymentLog({
+        namingId,
+        orderId: effectiveOrderId,
+        result: 'failure',
+        phase: 'verify_order_mismatch',
+        httpStatus: 409,
+        tossStatus: 'ORDER_MISMATCH',
+        message: `토스 응답 orderId 불일치 (expected:${effectiveOrderId}, actual:${verificationFields.orderId})`,
+        rawResponse: verification.response?.json ?? null,
+        requestId,
+      });
+      return jsonWithCors(
+        req,
+        { error: '결제 주문번호 검증에 실패했습니다. 다시 시도해주세요.' },
+        { status: 409 }
+      );
+    }
+
+    if (expectedProductId && verificationFields.productId && verificationFields.productId !== expectedProductId) {
+      await insertPaymentLog({
+        namingId,
+        orderId: effectiveOrderId,
+        result: 'failure',
+        phase: 'verify_product_mismatch',
+        httpStatus: 409,
+        tossStatus: 'PRODUCT_MISMATCH',
+        message: `토스 응답 상품 불일치 (expected:${expectedProductId}, actual:${verificationFields.productId})`,
+        rawResponse: verification.response?.json ?? null,
+        requestId,
+      });
+      return jsonWithCors(
+        req,
+        { error: '결제 상품 검증에 실패했습니다. 다시 시도해주세요.' },
+        { status: 409 }
+      );
+    }
+
+    if (hasExpectedAmount && verificationFields.amount !== null && verificationFields.amount !== expectedAmount) {
+      await insertPaymentLog({
+        namingId,
+        orderId: effectiveOrderId,
+        result: 'failure',
+        phase: 'verify_amount_mismatch',
+        httpStatus: 409,
+        tossStatus: 'AMOUNT_MISMATCH',
+        message: `토스 응답 금액 불일치 (expected:${expectedAmount}, actual:${verificationFields.amount})`,
+        rawResponse: verification.response?.json ?? null,
+        requestId,
+      });
+      return jsonWithCors(
+        req,
+        { error: '결제 금액 검증에 실패했습니다. 다시 시도해주세요.' },
+        { status: 409 }
+      );
+    }
+
+    if ((expectedProductId && !verificationFields.productId) || (hasExpectedAmount && verificationFields.amount === null)) {
+      await insertPaymentLog({
+        namingId,
+        orderId: effectiveOrderId,
+        result: 'info',
+        phase: 'verify_fields_partial',
+        httpStatus: 200,
+        message: '토스 응답에서 일부 검증 필드를 확인하지 못했습니다',
+        details: JSON.stringify({
+          expectedProductId: expectedProductId || null,
+          actualProductId: verificationFields.productId,
+          expectedAmount: hasExpectedAmount ? expectedAmount : null,
+          actualAmount: verificationFields.amount,
+        }),
+        rawResponse: verification.response?.json ?? null,
+        requestId,
+      });
     }
 
     const paidAt = new Date().toISOString();

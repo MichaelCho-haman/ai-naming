@@ -16,13 +16,37 @@ function parseAllowedOrigins() {
     .filter(Boolean);
 }
 
+function isSubdomainOrSame(host: string, baseDomain: string) {
+  return host === baseDomain || host.endsWith(`.${baseDomain}`);
+}
+
+function parseOrigin(origin: string) {
+  try {
+    return new URL(origin);
+  } catch {
+    return null;
+  }
+}
+
 function isAllowedOrigin(origin: string | null) {
   if (!origin) return false;
-  if (origin.includes('.toss.im')) return true;
-  if (origin.includes('.tossmini.com')) return true;
-  if (origin.startsWith('http://localhost:')) return true;
-  if (origin.startsWith('http://127.0.0.1:')) return true;
-  return parseAllowedOrigins().includes(origin);
+  if (parseAllowedOrigins().includes(origin)) return true;
+
+  const parsed = parseOrigin(origin);
+  if (!parsed) return false;
+
+  const hostname = parsed.hostname.toLowerCase();
+  const protocol = parsed.protocol.toLowerCase();
+
+  if (protocol === 'http:' && (hostname === 'localhost' || hostname === '127.0.0.1')) {
+    return true;
+  }
+
+  if (protocol !== 'https:') return false;
+
+  if (isSubdomainOrSame(hostname, 'toss.im')) return true;
+  if (isSubdomainOrSame(hostname, 'tossmini.com')) return true;
+  return false;
 }
 
 function resolveAllowOrigin(req: NextRequest) {

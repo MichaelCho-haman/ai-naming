@@ -6,6 +6,26 @@ const rateLimit = new Map<string, { count: number; lastReset: number }>();
 const WINDOW_MS = 60 * 1000; // 1 minute
 const MAX_REQUESTS = 30;
 
+function getRateLimitKey(req: NextRequest) {
+  const forwardedIp = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim();
+  const realIp = req.headers.get('x-real-ip')?.trim();
+  const cfIp = req.headers.get('cf-connecting-ip')?.trim();
+  const ipCandidate = forwardedIp || realIp || cfIp;
+
+  if (ipCandidate && ipCandidate !== 'unknown') {
+    return `ip:${ipCandidate}`;
+  }
+
+  // IP를 확보하지 못하는 환경(일부 앱인토스 요청)에서도 최소한의 남용 방어가 가능하도록
+  // 헤더 기반 fingerprint로 제한합니다.
+  const userAgent = req.headers.get('user-agent') || 'unknown-ua';
+  const origin = req.headers.get('origin') || 'unknown-origin';
+  const language = req.headers.get('accept-language') || 'unknown-lang';
+  const tossUserKey = req.headers.get('x-toss-user-key') || 'no-user-key';
+
+  return `fp:${userAgent}|${origin}|${language}|${tossUserKey}`;
+}
+
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
@@ -20,16 +40,12 @@ export async function middleware(req: NextRequest) {
       return withCors(req, NextResponse.next());
     }
 
-    const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
-    // 앱인토스 환경에서는 IP가 unknown으로 들어오는 경우가 있어 false-positive 방지
-    if (ip === 'unknown') {
-      return withCors(req, NextResponse.next());
-    }
+    const rateKey = getRateLimitKey(req);
     const now = Date.now();
 
-    const entry = rateLimit.get(ip);
+    const entry = rateLimit.get(rateKey);
     if (!entry || now - entry.lastReset > WINDOW_MS) {
-      rateLimit.set(ip, { count: 1, lastReset: now });
+      rateLimit.set(rateKey, { count: 1, lastReset: now });
       return NextResponse.next();
     }
 

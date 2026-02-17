@@ -1,5 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { getNaming } from '@/lib/supabase/queries';
+import { maskLockedNames } from '@/lib/naming/result-access';
 import { jsonWithCors, preflight } from '@/lib/http/cors';
 
 export async function OPTIONS(req: NextRequest) {
@@ -17,6 +18,12 @@ export async function GET(
     return jsonWithCors(req, { error: 'Naming not found' }, { status: 404 });
   }
 
+  const shouldLockPaidContent = naming.payment_status !== 'paid' && naming.payment_status !== 'free';
+  const namingContent =
+    naming.naming_content && shouldLockPaidContent
+      ? maskLockedNames(naming.naming_content, true)
+      : naming.naming_content;
+
   return jsonWithCors(req, {
     id: naming.id,
     lastName: naming.last_name,
@@ -25,7 +32,7 @@ export async function GET(
     birthMonth: naming.birth_month,
     birthDay: naming.birth_day,
     keywords: naming.keywords,
-    namingContent: naming.naming_content,
+    namingContent,
     paymentStatus: naming.payment_status,
     generationStatus: naming.generation_status,
     orderId: naming.order_id,
