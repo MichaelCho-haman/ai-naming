@@ -151,8 +151,8 @@ export default function ResultClient({ namingId, lastName, result, paymentStatus
         let cleanup: (() => void) | undefined;
         let settled = false;
         const timeoutId = window.setTimeout(() => {
-          rejectOnce(new Error('결제 모듈 응답이 없습니다. 토스 앱을 최신 버전으로 업데이트 후 다시 시도해주세요.'));
-        }, 15000);
+          rejectOnce(new Error('결제 확인 시간이 초과되었습니다. 다시 시도해주세요.'));
+        }, 35000);
 
         const finish = (action: () => void) => {
           if (settled) return;
