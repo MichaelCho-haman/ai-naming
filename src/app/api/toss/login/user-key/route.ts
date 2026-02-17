@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import { jsonWithCors, preflight } from '@/lib/http/cors';
 
 const DEFAULT_TOSS_LOGIN_BASE_URL = 'https://apps-in-toss-api.toss.im';
+const FALLBACK_TOSS_LOGIN_BASE_URL = 'https://api-partner.toss.im';
 export const runtime = 'nodejs';
 
 interface TossGenerateTokenSuccess {
@@ -31,7 +32,28 @@ interface TossResultResponse<T> {
 }
 
 function getLoginApiBaseUrl() {
-  return (process.env.TOSS_LOGIN_API_BASE_URL || DEFAULT_TOSS_LOGIN_BASE_URL).replace(/\/$/, '');
+  return (process.env.TOSS_LOGIN_API_BASE_URL || DEFAULT_TOSS_LOGIN_BASE_URL).trim().replace(/\/$/, '');
+}
+
+function getLoginApiBaseUrls() {
+  const primary = getLoginApiBaseUrl();
+  const list = [primary];
+  if (primary !== FALLBACK_TOSS_LOGIN_BASE_URL) {
+    list.push(FALLBACK_TOSS_LOGIN_BASE_URL);
+  }
+  return list;
+}
+
+function getFetchErrorReason(error: unknown) {
+  if (!(error instanceof Error)) return 'unknown';
+  const cause = (error as Error & { cause?: unknown }).cause as
+    | { code?: string; errno?: string | number; message?: string }
+    | undefined;
+  const parts = [error.message];
+  if (cause?.code) parts.push(`cause.code=${cause.code}`);
+  if (cause?.errno !== undefined) parts.push(`cause.errno=${String(cause.errno)}`);
+  if (cause?.message) parts.push(`cause.message=${cause.message}`);
+  return parts.filter(Boolean).join(' / ');
 }
 
 function parseReferrer(value: unknown) {
@@ -65,22 +87,31 @@ function resolveErrorMessage(payload: unknown, fallback: string) {
 }
 
 async function requestGenerateToken(authorizationCode: string, referrer: 'DEFAULT' | 'SANDBOX') {
-  const baseUrl = getLoginApiBaseUrl();
-  let res: Response;
-  try {
-    res = await fetch(`${baseUrl}/api-partner/v1/apps-in-toss/user/oauth2/generate-token`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ authorizationCode, referrer }),
-      cache: 'no-store',
-    });
-  } catch (error) {
-    const reason = error instanceof Error ? error.message : 'unknown';
+  let res: Response | null = null;
+  let usedBaseUrl = '';
+  const networkErrors: string[] = [];
+
+  for (const baseUrl of getLoginApiBaseUrls()) {
+    try {
+      res = await fetch(`${baseUrl}/api-partner/v1/apps-in-toss/user/oauth2/generate-token`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ authorizationCode, referrer }),
+        cache: 'no-store',
+      });
+      usedBaseUrl = baseUrl;
+      break;
+    } catch (error) {
+      networkErrors.push(`${baseUrl}: ${getFetchErrorReason(error)}`);
+    }
+  }
+
+  if (!res) {
     return {
       ok: false as const,
-      message: `토스 accessToken API 호출에 실패했습니다: ${reason}`,
+      message: `토스 accessToken API 호출에 실패했습니다: ${networkErrors.join(' | ')}`,
       payload: null,
     };
   }
@@ -89,7 +120,7 @@ async function requestGenerateToken(authorizationCode: string, referrer: 'DEFAUL
   if (!res.ok) {
     return {
       ok: false as const,
-      message: resolveErrorMessage(payload, '토스 accessToken 발급에 실패했습니다'),
+      message: resolveErrorMessage(payload, `토스 accessToken 발급에 실패했습니다 (${usedBaseUrl})`),
       payload,
     };
   }
@@ -114,22 +145,31 @@ async function requestGenerateToken(authorizationCode: string, referrer: 'DEFAUL
 }
 
 async function requestLoginMe(accessToken: string) {
-  const baseUrl = getLoginApiBaseUrl();
-  let res: Response;
-  try {
-    res = await fetch(`${baseUrl}/api-partner/v1/apps-in-toss/user/oauth2/login-me`, {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
-      },
-      cache: 'no-store',
-    });
-  } catch (error) {
-    const reason = error instanceof Error ? error.message : 'unknown';
+  let res: Response | null = null;
+  let usedBaseUrl = '';
+  const networkErrors: string[] = [];
+
+  for (const baseUrl of getLoginApiBaseUrls()) {
+    try {
+      res = await fetch(`${baseUrl}/api-partner/v1/apps-in-toss/user/oauth2/login-me`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        cache: 'no-store',
+      });
+      usedBaseUrl = baseUrl;
+      break;
+    } catch (error) {
+      networkErrors.push(`${baseUrl}: ${getFetchErrorReason(error)}`);
+    }
+  }
+
+  if (!res) {
     return {
       ok: false as const,
-      message: `토스 사용자 조회 API 호출에 실패했습니다: ${reason}`,
+      message: `토스 사용자 조회 API 호출에 실패했습니다: ${networkErrors.join(' | ')}`,
       payload: null,
     };
   }
@@ -138,7 +178,7 @@ async function requestLoginMe(accessToken: string) {
   if (!res.ok) {
     return {
       ok: false as const,
-      message: resolveErrorMessage(payload, '토스 사용자 조회에 실패했습니다'),
+      message: resolveErrorMessage(payload, `토스 사용자 조회에 실패했습니다 (${usedBaseUrl})`),
       payload,
     };
   }
