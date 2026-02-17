@@ -4,6 +4,41 @@ import { getTossOrderStatus, isTossOrderPaid } from '@/lib/toss/iap-client';
 import { jsonWithCors, preflight } from '@/lib/http/cors';
 
 const allowMock = process.env.ALLOW_IAP_MOCK === 'true';
+const verifyRetries = Number(process.env.TOSS_IAP_VERIFY_RETRIES || '6');
+const verifyRetryDelayMs = Number(process.env.TOSS_IAP_VERIFY_RETRY_DELAY_MS || '1000');
+
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function verifyPaidOrderWithRetry(orderId: string, userKey: string) {
+  let lastResponse: Awaited<ReturnType<typeof getTossOrderStatus>> | null = null;
+  let lastError: unknown = null;
+
+  for (let attempt = 0; attempt < Math.max(1, verifyRetries); attempt++) {
+    try {
+      const response = await getTossOrderStatus({ orderId, userKey });
+      lastResponse = response;
+      lastError = null;
+
+      if (response.status >= 200 && response.status < 300 && isTossOrderPaid(response.json)) {
+        return { ok: true as const, response };
+      }
+    } catch (error) {
+      lastError = error;
+    }
+
+    if (attempt < Math.max(1, verifyRetries) - 1) {
+      await sleep(Math.max(0, verifyRetryDelayMs));
+    }
+  }
+
+  return {
+    ok: false as const,
+    response: lastResponse,
+    error: lastError,
+  };
+}
 
 export async function OPTIONS(req: NextRequest) {
   return preflight(req);
@@ -49,22 +84,32 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const tossResponse = await getTossOrderStatus({ orderId, userKey });
-    if (tossResponse.status < 200 || tossResponse.status >= 300) {
+    const verification = await verifyPaidOrderWithRetry(orderId, userKey);
+
+    if (!verification.ok && verification.response && (verification.response.status < 200 || verification.response.status >= 300)) {
       return jsonWithCors(
         req,
         {
           error: '토스 주문 검증 API 호출에 실패했습니다',
-          details: tossResponse.json?.message || tossResponse.json?.code || null,
+          details:
+            verification.response.json?.message ||
+            verification.response.json?.code ||
+            null,
         },
         { status: 502 }
       );
     }
 
-    if (!isTossOrderPaid(tossResponse.json)) {
+    if (!verification.ok) {
+      const fallbackErrorMessage =
+        verification.error instanceof Error ? verification.error.message : null;
       return jsonWithCors(
         req,
-        { error: '결제가 완료 상태가 아닙니다', orderStatus: tossResponse.json?.data ?? null },
+        {
+          error: '결제가 완료 상태가 아닙니다',
+          orderStatus: verification.response?.json?.data ?? null,
+          details: fallbackErrorMessage,
+        },
         { status: 409 }
       );
     }

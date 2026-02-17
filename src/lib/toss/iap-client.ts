@@ -30,6 +30,21 @@ function parseMaybeJson(raw: string) {
   }
 }
 
+function hasMtlsCredentials() {
+  const cert = process.env.TOSS_MTLS_CERT_PEM || process.env.TOSS_MTLS_CERT_PATH;
+  const key = process.env.TOSS_MTLS_KEY_PEM || process.env.TOSS_MTLS_KEY_PATH;
+  return Boolean(cert && key);
+}
+
+function shouldUseMtlsForIap() {
+  const explicit = process.env.TOSS_IAP_USE_MTLS;
+  if (explicit === 'true') return true;
+  if (explicit === 'false') return false;
+
+  if (process.env.TOSS_LOGIN_USE_MTLS === 'true') return true;
+  return hasMtlsCredentials();
+}
+
 async function requestWithMtls(url: string, userKey: string, body: string) {
   const cert = readPemValue(process.env.TOSS_MTLS_CERT_PEM, process.env.TOSS_MTLS_CERT_PATH);
   const key = readPemValue(process.env.TOSS_MTLS_KEY_PEM, process.env.TOSS_MTLS_KEY_PATH);
@@ -85,7 +100,7 @@ async function requestWithMtls(url: string, userKey: string, body: string) {
 export async function getTossOrderStatus({ orderId, userKey }: TossOrderStatusRequest) {
   const url = process.env.TOSS_IAP_ORDER_STATUS_URL || DEFAULT_ORDER_STATUS_URL;
   const requestBody = JSON.stringify({ orderId });
-  const useMtls = process.env.TOSS_IAP_USE_MTLS === 'true';
+  const useMtls = shouldUseMtlsForIap();
 
   if (useMtls) {
     return requestWithMtls(url, userKey, requestBody);
