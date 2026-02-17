@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getNaming, updatePaymentStatus } from '@/lib/supabase/queries';
+import { NextRequest } from 'next/server';
+import { getNaming, insertPaymentLog, updatePaymentStatus } from '@/lib/supabase/queries';
 import { getTossOrderStatus, isTossOrderPaid } from '@/lib/toss/iap-client';
 import { jsonWithCors, preflight } from '@/lib/http/cors';
 
@@ -40,6 +40,26 @@ function pickStatusHint(raw: unknown) {
   };
 }
 
+function toNullableString(value: unknown) {
+  if (value === null || value === undefined) return null;
+  if (typeof value === 'string') return value;
+  if (typeof value === 'number' || typeof value === 'boolean') return String(value);
+  return null;
+}
+
+function getErrorMessage(error: unknown, fallback: string) {
+  if (error instanceof Error && error.message) return error.message;
+  if (typeof error === 'object' && error !== null && 'message' in error) {
+    const message = (error as { message?: unknown }).message;
+    if (typeof message === 'string' && message) return message;
+  }
+  return fallback;
+}
+
+function getRequestId(req: NextRequest) {
+  return req.headers.get('x-request-id') || req.headers.get('x-vercel-id');
+}
+
 async function verifyPaidOrderWithRetry(orderId: string, userKey: string) {
   let lastResponse: Awaited<ReturnType<typeof getTossOrderStatus>> | null = null;
   let lastError: unknown = null;
@@ -74,21 +94,55 @@ export async function OPTIONS(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  const requestId = getRequestId(req);
+  let namingIdForLog: string | null = null;
+  let orderIdForLog: string | null = null;
+
   try {
     const body = await req.json();
     const { namingId, orderId, userKey: bodyUserKey } = body ?? {};
+    namingIdForLog = typeof namingId === 'string' ? namingId : null;
+    orderIdForLog = typeof orderId === 'string' ? orderId : null;
     const userKey = bodyUserKey || req.headers.get('x-toss-user-key');
 
     if (!namingId || typeof namingId !== 'string') {
+      await insertPaymentLog({
+        namingId: namingIdForLog,
+        orderId: orderIdForLog,
+        result: 'failure',
+        phase: 'validation_failed',
+        httpStatus: 400,
+        message: 'namingId가 필요합니다',
+        requestId,
+      });
       return jsonWithCors(req, { error: 'namingId가 필요합니다' }, { status: 400 });
     }
 
     const naming = await getNaming(namingId);
     if (!naming) {
+      await insertPaymentLog({
+        namingId: namingIdForLog,
+        orderId: orderIdForLog,
+        result: 'failure',
+        phase: 'naming_not_found',
+        httpStatus: 404,
+        message: '작명 결과를 찾을 수 없습니다',
+        requestId,
+      });
       return jsonWithCors(req, { error: '작명 결과를 찾을 수 없습니다' }, { status: 404 });
     }
 
     if (naming.payment_status === 'paid') {
+      await insertPaymentLog({
+        namingId,
+        orderId: orderIdForLog ?? naming.order_id ?? null,
+        result: 'info',
+        phase: 'already_paid',
+        httpStatus: 200,
+        tossStatus: 'ALREADY_PAID',
+        message: '이미 결제 완료된 namingId',
+        requestId,
+      });
       return jsonWithCors(req, {
         ok: true,
         paymentStatus: 'paid',
@@ -103,6 +157,17 @@ export async function POST(req: NextRequest) {
         orderId: null,
         paidAt,
       });
+      await insertPaymentLog({
+        namingId,
+        orderId: null,
+        result: 'success',
+        phase: 'mock_paid',
+        httpStatus: 200,
+        tossStatus: 'MOCK_PAID',
+        message: '모의 결제 완료 처리',
+        details: 'ALLOW_IAP_MOCK=true',
+        requestId,
+      });
       return jsonWithCors(req, {
         ok: true,
         paymentStatus: 'paid',
@@ -112,6 +177,15 @@ export async function POST(req: NextRequest) {
     }
 
     if (!orderId || typeof orderId !== 'string') {
+      await insertPaymentLog({
+        namingId,
+        orderId: orderIdForLog,
+        result: 'failure',
+        phase: 'validation_failed',
+        httpStatus: 400,
+        message: 'orderId가 필요합니다',
+        requestId,
+      });
       return jsonWithCors(
         req,
         { error: 'orderId가 필요합니다' },
@@ -120,6 +194,15 @@ export async function POST(req: NextRequest) {
     }
 
     if (!userKey) {
+      await insertPaymentLog({
+        namingId,
+        orderId,
+        result: 'failure',
+        phase: 'validation_failed',
+        httpStatus: 400,
+        message: 'userKey가 필요합니다',
+        requestId,
+      });
       return jsonWithCors(
         req,
         { error: 'userKey가 필요합니다. 토스 로그인 연동 후 전달해주세요' },
@@ -131,6 +214,24 @@ export async function POST(req: NextRequest) {
 
     if (!verification.ok && verification.response && (verification.response.status < 200 || verification.response.status >= 300)) {
       const hint = pickStatusHint(verification.response.json);
+      const detailsValue =
+        verification.response.json?.message ||
+        verification.response.json?.code ||
+        null;
+      const errorMessage = `토스 주문 검증 API 호출에 실패했습니다 (http:${verification.response.status}, status:${String(hint?.status ?? '-')} code:${String(hint?.code ?? '-')})`;
+      await insertPaymentLog({
+        namingId,
+        orderId,
+        result: 'failure',
+        phase: 'verify_api_failed',
+        httpStatus: verification.response.status,
+        tossStatus: toNullableString(hint?.status),
+        tossCode: toNullableString(hint?.code),
+        message: errorMessage,
+        details: toNullableString(detailsValue),
+        rawResponse: verification.response.json,
+        requestId,
+      });
       console.error('IAP verify API failed', {
         namingId,
         orderId,
@@ -140,11 +241,8 @@ export async function POST(req: NextRequest) {
       return jsonWithCors(
         req,
         {
-          error: `토스 주문 검증 API 호출에 실패했습니다 (http:${verification.response.status}, status:${String(hint?.status ?? '-')} code:${String(hint?.code ?? '-')})`,
-          details:
-            verification.response.json?.message ||
-            verification.response.json?.code ||
-            null,
+          error: errorMessage,
+          details: detailsValue,
         },
         { status: 502 }
       );
@@ -170,10 +268,24 @@ export async function POST(req: NextRequest) {
         responseJson,
         fallbackErrorMessage,
       });
+      const errorMessage = `결제가 완료 상태가 아닙니다 (status:${String(hint?.status ?? '-')} code:${String(hint?.code ?? '-')})`;
+      await insertPaymentLog({
+        namingId,
+        orderId,
+        result: 'failure',
+        phase: 'verify_not_paid',
+        httpStatus: 409,
+        tossStatus: toNullableString(hint?.status),
+        tossCode: toNullableString(hint?.code),
+        message: errorMessage,
+        details: toNullableString(fallbackErrorMessage),
+        rawResponse: responseJson,
+        requestId,
+      });
       return jsonWithCors(
         req,
         {
-          error: `결제가 완료 상태가 아닙니다 (status:${String(hint?.status ?? '-')} code:${String(hint?.code ?? '-')})`,
+          error: errorMessage,
           orderStatus: responseSuccess ?? responseData,
           rawOrderStatus: responseJson,
           details: fallbackErrorMessage,
@@ -187,6 +299,17 @@ export async function POST(req: NextRequest) {
       orderId,
       paidAt,
     });
+    await insertPaymentLog({
+      namingId,
+      orderId,
+      result: 'success',
+      phase: 'verify_paid',
+      httpStatus: 200,
+      tossStatus: 'PAID',
+      message: '결제 검증 완료',
+      rawResponse: verification.response?.json ?? null,
+      requestId,
+    });
 
     return jsonWithCors(req, {
       ok: true,
@@ -195,6 +318,15 @@ export async function POST(req: NextRequest) {
       paidAt,
     });
   } catch (error) {
+    await insertPaymentLog({
+      namingId: namingIdForLog,
+      orderId: orderIdForLog,
+      result: 'failure',
+      phase: 'exception',
+      httpStatus: 500,
+      message: getErrorMessage(error, '결제 완료 처리에 실패했습니다'),
+      requestId,
+    });
     console.error('IAP complete error:', error);
     return jsonWithCors(
       req,

@@ -3,6 +3,8 @@ import { NamingResult } from '@/types';
 
 const db = () => createServerClient();
 
+type PaymentLogResult = 'success' | 'failure' | 'info';
+
 // Naming 생성
 export async function createNaming(params: {
   id: string;
@@ -110,5 +112,38 @@ export async function incrementViewCount(id: string) {
       .from('namings')
       .update({ view_count: (naming.view_count || 0) + 1 })
       .eq('id', id);
+  }
+}
+
+export async function insertPaymentLog(params: {
+  namingId?: string | null;
+  orderId?: string | null;
+  result: PaymentLogResult;
+  phase: string;
+  httpStatus?: number | null;
+  tossStatus?: string | null;
+  tossCode?: string | null;
+  message?: string | null;
+  details?: string | null;
+  rawResponse?: unknown;
+  requestId?: string | null;
+}) {
+  const payload = {
+    naming_id: params.namingId ?? null,
+    order_id: params.orderId ?? null,
+    result: params.result,
+    phase: params.phase,
+    http_status: params.httpStatus ?? null,
+    toss_status: params.tossStatus ?? null,
+    toss_code: params.tossCode ?? null,
+    message: params.message ?? null,
+    details: params.details ?? null,
+    raw_response: params.rawResponse ?? null,
+    request_id: params.requestId ?? null,
+  };
+
+  const { error } = await db().from('payment_logs').insert(payload);
+  if (error) {
+    console.error('Failed to insert payment log:', error.message);
   }
 }
