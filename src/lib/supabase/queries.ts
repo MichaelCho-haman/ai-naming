@@ -104,6 +104,23 @@ export async function getNaming(id: string) {
   return data;
 }
 
+export async function getLatestOrderIdByNamingId(id: string) {
+  const { data, error } = await db()
+    .from('payment_logs')
+    .select('order_id')
+    .eq('naming_id', id)
+    .not('order_id', 'is', null)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    console.error('Failed to get latest order id:', error.message);
+    return null;
+  }
+  return typeof data?.order_id === 'string' ? data.order_id : null;
+}
+
 // 조회수 증가
 export async function incrementViewCount(id: string) {
   const naming = await getNaming(id);

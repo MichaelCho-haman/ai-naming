@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { getNaming, insertPaymentLog, updatePaymentStatus } from '@/lib/supabase/queries';
+import { getLatestOrderIdByNamingId, getNaming, insertPaymentLog, updatePaymentStatus } from '@/lib/supabase/queries';
 import { getTossOrderStatus, isTossOrderPaid } from '@/lib/toss/iap-client';
 import { jsonWithCors, preflight } from '@/lib/http/cors';
 
@@ -120,7 +120,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { namingId, orderId, userKey: bodyUserKey } = body ?? {};
     namingIdForLog = typeof namingId === 'string' ? namingId : null;
-    orderIdForLog = typeof orderId === 'string' ? orderId : null;
+    orderIdForLog = typeof orderId === 'string' ? orderId.trim() : null;
     const userKey = bodyUserKey || req.headers.get('x-toss-user-key');
 
     if (!namingId || typeof namingId !== 'string') {
@@ -194,19 +194,44 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    if (!orderId || typeof orderId !== 'string') {
+    let effectiveOrderId =
+      typeof orderId === 'string' && orderId.trim()
+        ? orderId.trim()
+        : (typeof naming.order_id === 'string' && naming.order_id.trim() ? naming.order_id.trim() : null);
+
+    if (!effectiveOrderId) {
+      const recoveredOrderId = await getLatestOrderIdByNamingId(namingId);
+      if (recoveredOrderId) {
+        effectiveOrderId = recoveredOrderId;
+      }
+    }
+
+    if (effectiveOrderId && orderIdForLog !== effectiveOrderId) {
+      orderIdForLog = effectiveOrderId;
       await insertPaymentLog({
         namingId,
-        orderId: orderIdForLog,
+        orderId: effectiveOrderId,
+        result: 'info',
+        phase: 'order_id_recovered',
+        httpStatus: 200,
+        message: '요청에 orderId가 없어 기존 결제 이력에서 복구',
+        requestId,
+      });
+    }
+
+    if (!effectiveOrderId) {
+      await insertPaymentLog({
+        namingId,
+        orderId: orderIdForLog ?? null,
         result: 'failure',
-        phase: 'validation_failed',
+        phase: 'order_id_missing',
         httpStatus: 400,
-        message: 'orderId가 필요합니다',
+        message: 'orderId를 찾을 수 없습니다',
         requestId,
       });
       return jsonWithCors(
         req,
-        { error: 'orderId가 필요합니다' },
+        { error: 'orderId를 찾을 수 없습니다. 같은 결과 화면에서 다시 시도해주세요.' },
         { status: 400 }
       );
     }
@@ -214,7 +239,7 @@ export async function POST(req: NextRequest) {
     if (!userKey) {
       await insertPaymentLog({
         namingId,
-        orderId,
+        orderId: effectiveOrderId,
         result: 'failure',
         phase: 'validation_failed',
         httpStatus: 400,
@@ -228,7 +253,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const verification = await verifyPaidOrderWithRetry(orderId, userKey);
+    const verification = await verifyPaidOrderWithRetry(effectiveOrderId, userKey);
 
     if (!verification.ok && verification.response && (verification.response.status < 200 || verification.response.status >= 300)) {
       const hint = pickStatusHint(verification.response.json);
@@ -239,7 +264,7 @@ export async function POST(req: NextRequest) {
       const errorMessage = `토스 주문 검증 API 호출에 실패했습니다 (http:${verification.response.status}, status:${String(hint?.status ?? '-')} code:${String(hint?.code ?? '-')})`;
       await insertPaymentLog({
         namingId,
-        orderId,
+        orderId: effectiveOrderId,
         result: 'failure',
         phase: 'verify_api_failed',
         httpStatus: verification.response.status,
@@ -252,7 +277,7 @@ export async function POST(req: NextRequest) {
       });
       console.error('IAP verify API failed', {
         namingId,
-        orderId,
+        orderId: effectiveOrderId,
         httpStatus: verification.response.status,
         hint,
       });
@@ -281,7 +306,7 @@ export async function POST(req: NextRequest) {
           : null;
       console.error('IAP verify not paid', {
         namingId,
-        orderId,
+        orderId: effectiveOrderId,
         hint,
         responseJson,
         fallbackErrorMessage,
@@ -289,7 +314,7 @@ export async function POST(req: NextRequest) {
       const errorMessage = `결제가 완료 상태가 아닙니다 (status:${String(hint?.status ?? '-')} code:${String(hint?.code ?? '-')})`;
       await insertPaymentLog({
         namingId,
-        orderId,
+        orderId: effectiveOrderId,
         result: 'failure',
         phase: 'verify_not_paid',
         httpStatus: 409,
@@ -314,12 +339,12 @@ export async function POST(req: NextRequest) {
 
     const paidAt = new Date().toISOString();
     await updatePaymentStatus(namingId, 'paid', {
-      orderId,
+      orderId: effectiveOrderId,
       paidAt,
     });
     await insertPaymentLog({
       namingId,
-      orderId,
+      orderId: effectiveOrderId,
       result: 'success',
       phase: 'verify_paid',
       httpStatus: 200,
@@ -332,7 +357,7 @@ export async function POST(req: NextRequest) {
     return jsonWithCors(req, {
       ok: true,
       paymentStatus: 'paid',
-      orderId,
+      orderId: effectiveOrderId,
       paidAt,
     });
   } catch (error) {
