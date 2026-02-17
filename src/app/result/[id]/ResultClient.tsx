@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { IAP } from '@apps-in-toss/web-framework';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import { NamingResult, NameSuggestion } from '@/types';
@@ -15,26 +16,20 @@ interface Props {
   isTossTarget: boolean;
 }
 
-interface TossCreateOrderEvent {
-  type?: string;
-  [key: string]: unknown;
+function getErrorMessage(error: unknown, fallback: string) {
+  if (error instanceof Error && error.message) return error.message;
+  if (typeof error === 'object' && error !== null && 'message' in error) {
+    const message = (error as { message?: unknown }).message;
+    if (typeof message === 'string' && message) return message;
+  }
+  return fallback;
 }
 
-interface TossCreateOrderGrantArgs {
-  orderId: string;
-}
-
-interface TossCreateOrderOptions {
-  sku: string;
-  processProductGrant?: (args: TossCreateOrderGrantArgs) => Promise<boolean> | boolean;
-  onEvent?: (event: TossCreateOrderEvent | string) => void;
-  onError?: (error: { code?: string; message?: string }) => void;
-}
-
-interface TossBridge {
-  iap?: {
-    createOneTimePurchaseOrder?: (options: TossCreateOrderOptions) => void;
+function isTossAppWebView() {
+  const maybeWindow = window as Window & {
+    ReactNativeWebView?: { postMessage?: (message: string) => void };
   };
+  return typeof maybeWindow.ReactNativeWebView?.postMessage === 'function';
 }
 
 export default function ResultClient({ namingId, lastName, result, paymentStatus, isTossTarget }: Props) {
@@ -73,13 +68,18 @@ export default function ResultClient({ namingId, lastName, result, paymentStatus
     setUnlocking(true);
 
     try {
-      const bridge = (window as Window & { TossApps?: TossBridge }).TossApps;
       const sku = process.env.NEXT_PUBLIC_TOSS_IAP_PRODUCT_ID;
+      if (!sku) {
+        throw new Error('상품 ID가 설정되지 않았습니다. 관리자에게 문의해주세요.');
+      }
+      if (!isTossAppWebView()) {
+        throw new Error('토스 앱에서만 결제가 가능합니다.');
+      }
       const userKey =
         window.localStorage.getItem('toss_user_key') ||
         (window as Window & { __TOSS_USER_KEY__?: string }).__TOSS_USER_KEY__;
 
-      const completePayment = async (orderId?: string) => {
+      const completePayment = async (orderId: string) => {
         const res = await fetch('/api/iap/complete', {
           method: 'POST',
           headers: {
@@ -94,43 +94,68 @@ export default function ResultClient({ namingId, lastName, result, paymentStatus
         }
       };
 
-      if (bridge?.iap?.createOneTimePurchaseOrder && sku) {
-        await new Promise<void>((resolve, reject) => {
-          bridge.iap?.createOneTimePurchaseOrder?.({
-            sku,
-            processProductGrant: async ({ orderId }) => {
-              try {
-                await completePayment(orderId);
-                return true;
-              } catch (error) {
-                reject(error);
-                return false;
-              }
+      await new Promise<void>((resolve, reject) => {
+        let cleanup: (() => void) | undefined;
+        let settled = false;
+        const timeoutId = window.setTimeout(() => {
+          rejectOnce(new Error('결제 모듈 응답이 없습니다. 토스 앱을 최신 버전으로 업데이트 후 다시 시도해주세요.'));
+        }, 15000);
+
+        const finish = (action: () => void) => {
+          if (settled) return;
+          settled = true;
+          window.clearTimeout(timeoutId);
+          try {
+            cleanup?.();
+          } catch {
+            // ignore cleanup error
+          }
+          action();
+        };
+
+        const resolveOnce = () => finish(() => resolve());
+        const rejectOnce = (error: unknown) =>
+          finish(() => reject(error instanceof Error ? error : new Error('결제에 실패했습니다.')));
+
+        try {
+          cleanup = IAP.createOneTimePurchaseOrder({
+            options: {
+              sku,
+              processProductGrant: async ({ orderId }) => {
+                try {
+                  await completePayment(orderId);
+                  resolveOnce();
+                  return true;
+                } catch (error) {
+                  rejectOnce(error);
+                  return false;
+                }
+              },
             },
             onEvent: (event) => {
-              const type = typeof event === 'string' ? event : event.type;
-              if (type === 'SUCCESS') {
-                resolve();
+              const type = String(event?.type ?? '').toLowerCase();
+              if (type === 'success') {
+                resolveOnce();
                 return;
               }
-              if (type === 'CANCEL' || type === 'CANCELED' || type === 'CANCELLED') {
-                reject(new Error('결제가 취소되었습니다'));
+              if (type === 'canceled' || type === 'cancel' || type === 'cancelled' || type === 'user_canceled') {
+                rejectOnce(new Error('결제가 취소되었습니다.'));
               }
             },
             onError: (error) => {
-              reject(new Error(error.message || '결제에 실패했습니다'));
+              rejectOnce(new Error(getErrorMessage(error, '결제에 실패했습니다.')));
             },
           });
-        });
-      } else {
-        await completePayment();
-      }
+        } catch (error) {
+          rejectOnce(error);
+        }
+      });
 
       setCurrentPaymentStatus('paid');
       setUnlocking(false);
       router.refresh();
     } catch (error) {
-      const message = error instanceof Error ? error.message : '결제 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
+      const message = getErrorMessage(error, '결제 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
       setUnlockError(message);
       setUnlocking(false);
     }
