@@ -1,8 +1,9 @@
 import { readFileSync } from 'node:fs';
 import https from 'node:https';
 
-const DEFAULT_ORDER_STATUS_URL =
-  'https://api-partner.toss.im/api-partner/v1/apps-in-toss/order/get-order-status';
+const ORDER_STATUS_PATH = '/api-partner/v1/apps-in-toss/order/get-order-status';
+const DEFAULT_IAP_BASE_URL = 'https://apps-in-toss-api.toss.im';
+const FALLBACK_IAP_BASE_URL = 'https://api-partner.toss.im';
 
 interface TossOrderStatusRequest {
   orderId: string;
@@ -16,6 +17,22 @@ interface TossApiResponse {
   success?: Record<string, unknown>;
   resultType?: string;
   [key: string]: unknown;
+}
+
+function getOrderStatusUrls() {
+  const fromEnv = (process.env.TOSS_IAP_ORDER_STATUS_URL || '').trim().replace(/\/$/, '');
+  const defaultUrl = `${DEFAULT_IAP_BASE_URL}${ORDER_STATUS_PATH}`;
+  const fallbackUrl = `${FALLBACK_IAP_BASE_URL}${ORDER_STATUS_PATH}`;
+  const urls = [fromEnv || defaultUrl];
+
+  if (!urls.includes(defaultUrl)) {
+    urls.push(defaultUrl);
+  }
+  if (!urls.includes(fallbackUrl)) {
+    urls.push(fallbackUrl);
+  }
+
+  return urls;
 }
 
 function walkDeep(
@@ -182,28 +199,38 @@ async function requestWithMtls(url: string, userKey: string, body: string) {
 }
 
 export async function getTossOrderStatus({ orderId, userKey }: TossOrderStatusRequest) {
-  const url = process.env.TOSS_IAP_ORDER_STATUS_URL || DEFAULT_ORDER_STATUS_URL;
   const requestBody = JSON.stringify({ orderId });
   const useMtls = shouldUseMtlsForIap();
+  const urls = getOrderStatusUrls();
+  const networkErrors: string[] = [];
 
-  if (useMtls) {
-    return requestWithMtls(url, userKey, requestBody);
+  for (const url of urls) {
+    try {
+      if (useMtls) {
+        return await requestWithMtls(url, userKey, requestBody);
+      }
+
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-toss-user-key': userKey,
+        },
+        body: requestBody,
+      });
+
+      const text = await res.text();
+      return {
+        status: res.status,
+        json: parseMaybeJson(text),
+      };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      networkErrors.push(`${url}: ${message}`);
+    }
   }
 
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-toss-user-key': userKey,
-    },
-    body: requestBody,
-  });
-
-  const text = await res.text();
-  return {
-    status: res.status,
-    json: parseMaybeJson(text),
-  };
+  throw new Error(`IAP order status API 호출 실패: ${networkErrors.join(' | ')}`);
 }
 
 export function isTossOrderPaid(payload: TossApiResponse) {

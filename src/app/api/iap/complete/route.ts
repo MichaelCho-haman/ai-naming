@@ -255,6 +255,29 @@ export async function POST(req: NextRequest) {
 
     const verification = await verifyPaidOrderWithRetry(effectiveOrderId, userKey);
 
+    if (!verification.ok && !verification.response) {
+      const fallbackErrorMessage =
+        verification.error instanceof Error ? verification.error.message : null;
+      await insertPaymentLog({
+        namingId,
+        orderId: effectiveOrderId,
+        result: 'failure',
+        phase: 'verify_network_error',
+        httpStatus: 502,
+        message: '토스 주문 검증 네트워크 오류',
+        details: toNullableString(fallbackErrorMessage),
+        requestId,
+      });
+      return jsonWithCors(
+        req,
+        {
+          error: '토스 주문 검증 네트워크 오류가 발생했습니다',
+          details: fallbackErrorMessage,
+        },
+        { status: 502 }
+      );
+    }
+
     if (!verification.ok && verification.response && (verification.response.status < 200 || verification.response.status >= 300)) {
       const hint = pickStatusHint(verification.response.json);
       const detailsValue =
