@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import {
-  findPaidNamingIdByOrderId,
+  findOtherNamingByOrderId,
   getLatestOrderIdByNamingId,
   getNaming,
   insertPaymentLog,
@@ -312,6 +312,43 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const savedOrderId =
+      typeof naming.order_id === 'string' && naming.order_id.trim() ? naming.order_id.trim() : null;
+    if (savedOrderId && effectiveOrderId !== savedOrderId) {
+      await insertPaymentLog({
+        namingId,
+        orderId: effectiveOrderId,
+        result: 'failure',
+        phase: 'order_id_mismatch_saved',
+        httpStatus: 409,
+        message: `현재 결과에 저장된 orderId와 다릅니다 (saved:${savedOrderId}, requested:${effectiveOrderId})`,
+        requestId,
+      });
+      return jsonWithCors(
+        req,
+        { error: '현재 결과에 연결된 결제 주문번호가 아닙니다. 같은 결과에서 다시 결제해주세요.' },
+        { status: 409 }
+      );
+    }
+
+    const otherNaming = await findOtherNamingByOrderId(effectiveOrderId, namingId);
+    if (otherNaming) {
+      await insertPaymentLog({
+        namingId,
+        orderId: effectiveOrderId,
+        result: 'failure',
+        phase: 'order_id_bound_other',
+        httpStatus: 409,
+        message: `이미 다른 결과에 연결된 orderId입니다 (owner:${otherNaming.id}, status:${otherNaming.paymentStatus ?? '-'})`,
+        requestId,
+      });
+      return jsonWithCors(
+        req,
+        { error: '이미 다른 결과에 사용된 결제 주문번호입니다.' },
+        { status: 409 }
+      );
+    }
+
     if (!userKey) {
       await insertPaymentLog({
         namingId,
@@ -326,24 +363,6 @@ export async function POST(req: NextRequest) {
         req,
         { error: 'userKey가 필요합니다. 토스 로그인 연동 후 전달해주세요' },
         { status: 400 }
-      );
-    }
-
-    const paidNamingIdByOrderId = await findPaidNamingIdByOrderId(effectiveOrderId);
-    if (paidNamingIdByOrderId && paidNamingIdByOrderId !== namingId) {
-      await insertPaymentLog({
-        namingId,
-        orderId: effectiveOrderId,
-        result: 'failure',
-        phase: 'order_id_reused',
-        httpStatus: 409,
-        message: `이미 다른 결과에서 결제 완료된 orderId입니다 (owner:${paidNamingIdByOrderId})`,
-        requestId,
-      });
-      return jsonWithCors(
-        req,
-        { error: '이미 사용된 결제 주문번호입니다. 새로운 결제로 다시 시도해주세요.' },
-        { status: 409 }
       );
     }
 
