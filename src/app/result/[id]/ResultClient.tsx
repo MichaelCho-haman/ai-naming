@@ -179,7 +179,7 @@ export default function ResultClient({ namingId, lastName, result, paymentStatus
             숨겨진 {lockedCount}개 이름과 상세 분석을 모두 확인할 수 있어요.
           </p>
           <Button onClick={handleUnlock} disabled={unlocking}>
-            {unlocking ? '결제 확인 중...' : '500원 결제로 전체 이름 보기'}
+            {unlocking ? '결제 확인 중...' : '550원 결제로 전체 이름 보기'}
           </Button>
           {unlockError && <p className="text-red-500 text-sm mt-3">{unlockError}</p>}
         </Card>
