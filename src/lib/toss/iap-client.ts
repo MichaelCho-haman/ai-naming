@@ -13,6 +13,8 @@ interface TossApiResponse {
   code?: string;
   message?: string;
   data?: Record<string, unknown>;
+  success?: Record<string, unknown>;
+  resultType?: string;
   [key: string]: unknown;
 }
 
@@ -123,17 +125,26 @@ export async function getTossOrderStatus({ orderId, userKey }: TossOrderStatusRe
 }
 
 export function isTossOrderPaid(payload: TossApiResponse) {
+  const success = (payload?.success ?? {}) as Record<string, unknown>;
   const data = (payload?.data ?? {}) as Record<string, unknown>;
+  const root = payload as Record<string, unknown>;
+
   const rawStatus =
+    success.status ??
+    success.orderStatus ??
+    success.purchaseStatus ??
+    success.paymentStatus ??
+    success.state ??
+    success.purchaseState ??
     data.orderStatus ??
     data.status ??
     data.purchaseStatus ??
     data.paymentStatus ??
     data.state ??
     data.purchaseState ??
-    payload.orderStatus ??
-    payload.status ??
-    payload.state;
+    root.orderStatus ??
+    root.status ??
+    root.state;
 
   const status = String(rawStatus ?? '').toUpperCase().trim();
 
@@ -164,10 +175,22 @@ export function isTossOrderPaid(payload: TossApiResponse) {
   if (paidLikeStatuses.has(status)) return true;
   if (failedLikeStatuses.has(status)) return false;
 
-  if (data.isCompleted === true || data.isPaid === true || data.purchased === true) return true;
+  if (
+    success.isCompleted === true ||
+    success.isPaid === true ||
+    success.purchased === true ||
+    data.isCompleted === true ||
+    data.isPaid === true ||
+    data.purchased === true
+  ) {
+    return true;
+  }
 
   // 응답 코드가 성공인데 상태 문자열만 예외적으로 들어온 경우를 보완
   if (typeof payload.code === 'string' && payload.code.toUpperCase() === 'SUCCESS' && status) {
+    return !failedLikeStatuses.has(status);
+  }
+  if (typeof payload.resultType === 'string' && payload.resultType.toUpperCase() === 'SUCCESS' && status) {
     return !failedLikeStatuses.has(status);
   }
   return false;

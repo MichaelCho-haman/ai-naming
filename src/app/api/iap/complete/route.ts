@@ -103,11 +103,21 @@ export async function POST(req: NextRequest) {
     if (!verification.ok) {
       const fallbackErrorMessage =
         verification.error instanceof Error ? verification.error.message : null;
+      const responseJson = verification.response?.json ?? null;
+      const responseSuccess =
+        responseJson && typeof responseJson === 'object' && 'success' in responseJson
+          ? (responseJson as { success?: unknown }).success
+          : null;
+      const responseData =
+        responseJson && typeof responseJson === 'object' && 'data' in responseJson
+          ? (responseJson as { data?: unknown }).data
+          : null;
       return jsonWithCors(
         req,
         {
           error: '결제가 완료 상태가 아닙니다',
-          orderStatus: verification.response?.json?.data ?? null,
+          orderStatus: responseSuccess ?? responseData,
+          rawOrderStatus: responseJson,
           details: fallbackErrorMessage,
         },
         { status: 409 }
