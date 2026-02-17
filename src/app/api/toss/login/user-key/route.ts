@@ -1,4 +1,6 @@
 import { NextRequest } from 'next/server';
+import { readFileSync } from 'node:fs';
+import https from 'node:https';
 import { jsonWithCors, preflight } from '@/lib/http/cors';
 
 const DEFAULT_TOSS_LOGIN_BASE_URL = 'https://apps-in-toss-api.toss.im';
@@ -31,6 +33,14 @@ interface TossResultResponse<T> {
   message?: string;
 }
 
+type HttpMethod = 'GET' | 'POST';
+
+interface TossHttpResponse {
+  ok: boolean;
+  status: number;
+  body: string;
+}
+
 function getLoginApiBaseUrl() {
   return (process.env.TOSS_LOGIN_API_BASE_URL || DEFAULT_TOSS_LOGIN_BASE_URL).trim().replace(/\/$/, '');
 }
@@ -42,6 +52,108 @@ function getLoginApiBaseUrls() {
     list.push(FALLBACK_TOSS_LOGIN_BASE_URL);
   }
   return list;
+}
+
+function readPemValue(inlineValue?: string, pathValue?: string) {
+  if (inlineValue) return inlineValue;
+  if (pathValue) return readFileSync(pathValue, 'utf-8');
+  return undefined;
+}
+
+function shouldUseLoginMtls() {
+  if (process.env.TOSS_LOGIN_USE_MTLS === 'true') return true;
+  if (process.env.TOSS_LOGIN_USE_MTLS === 'false') return false;
+  return process.env.TOSS_IAP_USE_MTLS === 'true';
+}
+
+function createMtlsAgent() {
+  const cert = readPemValue(process.env.TOSS_MTLS_CERT_PEM, process.env.TOSS_MTLS_CERT_PATH);
+  const key = readPemValue(process.env.TOSS_MTLS_KEY_PEM, process.env.TOSS_MTLS_KEY_PATH);
+  const ca = readPemValue(process.env.TOSS_MTLS_CA_PEM, process.env.TOSS_MTLS_CA_PATH);
+
+  if (!cert || !key) {
+    throw new Error(
+      '토스 로그인 mTLS 인증서 설정이 없습니다. Vercel에서는 TOSS_MTLS_CERT_PEM / TOSS_MTLS_KEY_PEM 사용을 권장합니다.'
+    );
+  }
+
+  return new https.Agent({
+    cert,
+    key,
+    ca,
+    rejectUnauthorized: process.env.TOSS_MTLS_REJECT_UNAUTHORIZED !== 'false',
+  });
+}
+
+async function requestWithMtls(
+  url: string,
+  method: HttpMethod,
+  headers: Record<string, string>,
+  body?: string
+) {
+  const target = new URL(url);
+  const agent = createMtlsAgent();
+
+  const normalizedHeaders: Record<string, string> = { ...headers };
+  if (body !== undefined) {
+    normalizedHeaders['Content-Length'] = String(Buffer.byteLength(body));
+  }
+
+  return await new Promise<TossHttpResponse>((resolve, reject) => {
+    const req = https.request(
+      {
+        protocol: target.protocol,
+        hostname: target.hostname,
+        port: target.port ? Number(target.port) : 443,
+        path: target.pathname + target.search,
+        method,
+        headers: normalizedHeaders,
+        agent,
+      },
+      (res) => {
+        let raw = '';
+        res.on('data', (chunk) => {
+          raw += chunk;
+        });
+        res.on('end', () => {
+          const status = res.statusCode || 500;
+          resolve({
+            ok: status >= 200 && status < 300,
+            status,
+            body: raw,
+          });
+        });
+      }
+    );
+
+    req.on('error', reject);
+    if (body !== undefined) req.write(body);
+    req.end();
+  });
+}
+
+async function requestTossApi(
+  url: string,
+  method: HttpMethod,
+  headers: Record<string, string>,
+  body?: string
+) {
+  if (shouldUseLoginMtls()) {
+    return requestWithMtls(url, method, headers, body);
+  }
+
+  const res = await fetch(url, {
+    method,
+    headers,
+    body,
+    cache: 'no-store',
+  });
+
+  return {
+    ok: res.ok,
+    status: res.status,
+    body: await res.text(),
+  } satisfies TossHttpResponse;
 }
 
 function getFetchErrorReason(error: unknown) {
@@ -63,8 +175,7 @@ function parseReferrer(value: unknown) {
   return null;
 }
 
-async function parseJsonOrText(res: Response) {
-  const text = await res.text();
+async function parseJsonOrText(text: string) {
   if (!text) return null;
   try {
     return JSON.parse(text) as TossResultResponse<unknown>;
@@ -87,20 +198,20 @@ function resolveErrorMessage(payload: unknown, fallback: string) {
 }
 
 async function requestGenerateToken(authorizationCode: string, referrer: 'DEFAULT' | 'SANDBOX') {
-  let res: Response | null = null;
+  let res: TossHttpResponse | null = null;
   let usedBaseUrl = '';
   const networkErrors: string[] = [];
 
   for (const baseUrl of getLoginApiBaseUrls()) {
     try {
-      res = await fetch(`${baseUrl}/api-partner/v1/apps-in-toss/user/oauth2/generate-token`, {
-        method: 'POST',
-        headers: {
+      res = await requestTossApi(
+        `${baseUrl}/api-partner/v1/apps-in-toss/user/oauth2/generate-token`,
+        'POST',
+        {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ authorizationCode, referrer }),
-        cache: 'no-store',
-      });
+        JSON.stringify({ authorizationCode, referrer })
+      );
       usedBaseUrl = baseUrl;
       break;
     } catch (error) {
@@ -116,7 +227,7 @@ async function requestGenerateToken(authorizationCode: string, referrer: 'DEFAUL
     };
   }
 
-  const payload = (await parseJsonOrText(res)) as TossResultResponse<TossGenerateTokenSuccess> | string | null;
+  const payload = (await parseJsonOrText(res.body)) as TossResultResponse<TossGenerateTokenSuccess> | string | null;
   if (!res.ok) {
     return {
       ok: false as const,
@@ -145,20 +256,20 @@ async function requestGenerateToken(authorizationCode: string, referrer: 'DEFAUL
 }
 
 async function requestLoginMe(accessToken: string) {
-  let res: Response | null = null;
+  let res: TossHttpResponse | null = null;
   let usedBaseUrl = '';
   const networkErrors: string[] = [];
 
   for (const baseUrl of getLoginApiBaseUrls()) {
     try {
-      res = await fetch(`${baseUrl}/api-partner/v1/apps-in-toss/user/oauth2/login-me`, {
-        method: 'GET',
-        headers: {
+      res = await requestTossApi(
+        `${baseUrl}/api-partner/v1/apps-in-toss/user/oauth2/login-me`,
+        'GET',
+        {
           Authorization: `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
-        },
-        cache: 'no-store',
-      });
+        }
+      );
       usedBaseUrl = baseUrl;
       break;
     } catch (error) {
@@ -174,7 +285,7 @@ async function requestLoginMe(accessToken: string) {
     };
   }
 
-  const payload = (await parseJsonOrText(res)) as TossResultResponse<TossLoginMeSuccess> | string | null;
+  const payload = (await parseJsonOrText(res.body)) as TossResultResponse<TossLoginMeSuccess> | string | null;
   if (!res.ok) {
     return {
       ok: false as const,

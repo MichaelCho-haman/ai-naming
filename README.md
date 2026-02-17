@@ -48,6 +48,7 @@ ALLOW_IAP_MOCK=true
 - 토스 로그인에서 얻은 userKey를 헤더(`x-toss-user-key`) 또는 body(`userKey`)로 전달해야 합니다.
 - `ALLOW_IAP_MOCK=true`이면 `orderId` 없이도 개발용으로 결제 완료 처리가 가능합니다.
 - mTLS가 필요한 환경이면 `TOSS_IAP_USE_MTLS=true`와 인증서/키 환경변수를 설정해야 합니다.
+- 토스 로그인 userKey 교환 API(`/api/toss/login/user-key`)도 mTLS를 사용하므로 `TOSS_LOGIN_USE_MTLS=true`와 동일 인증서 환경변수를 설정하세요.
 
 ## Learn More
 
