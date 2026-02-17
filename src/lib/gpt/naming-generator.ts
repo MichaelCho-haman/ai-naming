@@ -4,6 +4,11 @@ import { parseNamingResponse } from './sections';
 import type { NamingResult } from '@/types';
 import { HANJA_STROKES, getHanjaStrokeEntry } from '@/lib/hanja/stroke-db';
 import {
+  createTrendingHanjaSuggestion,
+  findTrendingHanjaEntryByName,
+  pickTrendingHanjaEntry,
+} from '@/lib/korean/trending-hanja-db';
+import {
   type NativeKoreanNameEntry,
   type NativeNameTag,
   pickNativeKoreanNames,
@@ -231,6 +236,78 @@ function buildSeed(params: {
   ].join('|');
 }
 
+function ensureTrendingHanjaInSelection(
+  params: {
+    lastName: string;
+    gender: string;
+    birthYear?: number;
+    birthMonth?: number;
+    birthDay?: number;
+    birthHour?: number;
+    birthMinute?: number;
+    keywords?: string;
+  },
+  selectedHanja: NameSuggestion[]
+): NameSuggestion[] {
+  if (selectedHanja.length === 0) {
+    return selectedHanja;
+  }
+
+  const updated = [...selectedHanja];
+
+  for (let i = 0; i < updated.length; i += 1) {
+    const givenName = stripLastName(updated[i].koreanName, params.lastName);
+    if (!givenName) continue;
+
+    const matchedTrending = findTrendingHanjaEntryByName(givenName, params.gender);
+    if (matchedTrending) {
+      updated[i] = createTrendingHanjaSuggestion(params.lastName, matchedTrending);
+      return updated;
+    }
+  }
+
+  const preserveCount = Math.max(0, HANJA_NAME_COUNT - 1);
+  const preserveGivenNames = updated
+    .slice(0, preserveCount)
+    .map((name) => stripLastName(name.koreanName, params.lastName))
+    .filter((name): name is string => Boolean(name));
+
+  const trendingEntry =
+    pickTrendingHanjaEntry({
+      gender: params.gender,
+      seed: buildSeed(params),
+      excludeNames: preserveGivenNames,
+    }) ??
+    pickTrendingHanjaEntry({
+      gender: params.gender,
+      seed: buildSeed(params),
+      excludeNames: [],
+    });
+
+  if (!trendingEntry) {
+    return updated;
+  }
+
+  const trendingSuggestion = createTrendingHanjaSuggestion(params.lastName, trendingEntry);
+  const trendingGivenName = stripLastName(trendingSuggestion.koreanName, params.lastName);
+  if (!trendingGivenName) {
+    return updated;
+  }
+
+  const duplicatedInPreserved = preserveGivenNames.includes(trendingGivenName);
+  if (duplicatedInPreserved) {
+    return updated;
+  }
+
+  if (updated.length < HANJA_NAME_COUNT) {
+    updated.push(trendingSuggestion);
+    return updated;
+  }
+
+  updated[HANJA_NAME_COUNT - 1] = trendingSuggestion;
+  return updated;
+}
+
 function composeFinalSuggestions(
   params: {
     lastName: string;
@@ -280,11 +357,18 @@ function composeFinalSuggestions(
     usedGivenNames.add(fallbackGivenName);
   }
 
-  const preferredTags = extractPreferredTags(params, selectedHanja[0]);
+  const hanjaWithTrending = ensureTrendingHanjaInSelection(params, selectedHanja)
+    .slice(0, HANJA_NAME_COUNT);
+
+  const excludedGivenNames = hanjaWithTrending
+    .map((name) => stripLastName(name.koreanName, params.lastName))
+    .filter((name): name is string => Boolean(name));
+
+  const preferredTags = extractPreferredTags(params, hanjaWithTrending[0]);
   const nativeNames = pickNativeKoreanNames({
     count: NATIVE_NAME_COUNT,
     seed: buildSeed(params),
-    excludeNames: Array.from(usedGivenNames),
+    excludeNames: excludedGivenNames,
     preferredTags,
     gender: params.gender === 'male' ? 'male' : 'female',
   });
@@ -293,7 +377,7 @@ function composeFinalSuggestions(
     createNativeSuggestion(params.lastName, entry, 84 - index * 3)
   );
 
-  return [...selectedHanja, ...nativeSuggestions];
+  return [...hanjaWithTrending, ...nativeSuggestions];
 }
 
 export async function generateNaming(params: {

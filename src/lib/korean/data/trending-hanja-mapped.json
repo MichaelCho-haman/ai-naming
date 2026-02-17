@@ -1,0 +1,2012 @@
+{
+  "generated_at": "2026-02-17T14:30:55.661Z",
+  "criteria": "primary_hanja 모든 글자가 기존 stroke-db에 매핑되고, 각 글자 meaning/strokes가 모두 존재하는 이름만 포함",
+  "total_names": 69,
+  "counts_by_gender": {
+    "male": 35,
+    "female": 34
+  },
+  "names": [
+    {
+      "rank": 1,
+      "name": "이현",
+      "gender": "male",
+      "usage_count": 5291,
+      "popularity_score": 100,
+      "hanja": {
+        "characters": "李賢",
+        "meaning": "오얏처럼 어질고 훌륭한 사람",
+        "chars": [
+          {
+            "character": "李",
+            "reading": "이",
+            "meaning": "오얏",
+            "full_meaning": "오얏 이",
+            "strokes": 7,
+            "element": "금"
+          },
+          {
+            "character": "賢",
+            "reading": "현",
+            "meaning": "어질",
+            "full_meaning": "어질 현",
+            "strokes": 15,
+            "element": "토"
+          }
+        ]
+      }
+    },
+    {
+      "rank": 2,
+      "name": "도윤",
+      "gender": "male",
+      "usage_count": 5158,
+      "popularity_score": 99,
+      "hanja": {
+        "characters": "道潤",
+        "meaning": "바른 길 위에 윤택함을 가진 사람",
+        "chars": [
+          {
+            "character": "道",
+            "reading": "도",
+            "meaning": "길",
+            "full_meaning": "길 도",
+            "strokes": 16,
+            "element": "토"
+          },
+          {
+            "character": "潤",
+            "reading": "윤",
+            "meaning": "윤택할",
+            "full_meaning": "윤택할 윤",
+            "strokes": 16,
+            "element": "토"
+          }
+        ]
+      }
+    },
+    {
+      "rank": 3,
+      "name": "지안",
+      "gender": "female",
+      "usage_count": 5105,
+      "popularity_score": 98,
+      "hanja": {
+        "characters": "智安",
+        "meaning": "지혜로워 편안한 사람",
+        "chars": [
+          {
+            "character": "智",
+            "reading": "지",
+            "meaning": "지혜",
+            "full_meaning": "지혜 지",
+            "strokes": 12,
+            "element": "목"
+          },
+          {
+            "character": "安",
+            "reading": "안",
+            "meaning": "편안할",
+            "full_meaning": "편안할 안",
+            "strokes": 6,
+            "element": "토"
+          }
+        ]
+      }
+    },
+    {
+      "rank": 4,
+      "name": "이준",
+      "gender": "male",
+      "usage_count": 5029,
+      "popularity_score": 97,
+      "hanja": {
+        "characters": "李俊",
+        "meaning": "오얏처럼 뛰어난 사람",
+        "chars": [
+          {
+            "character": "李",
+            "reading": "이",
+            "meaning": "오얏",
+            "full_meaning": "오얏 이",
+            "strokes": 7,
+            "element": "금"
+          },
+          {
+            "character": "俊",
+            "reading": "준",
+            "meaning": "뛰어날",
+            "full_meaning": "뛰어날 준",
+            "strokes": 9,
+            "element": "수"
+          }
+        ]
+      }
+    },
+    {
+      "rank": 5,
+      "name": "서아",
+      "gender": "female",
+      "usage_count": 5016,
+      "popularity_score": 96,
+      "hanja": {
+        "characters": "瑞雅",
+        "meaning": "상서롭고 우아한 사람",
+        "chars": [
+          {
+            "character": "瑞",
+            "reading": "서",
+            "meaning": "상서로울",
+            "full_meaning": "상서로울 서",
+            "strokes": 14,
+            "element": "화"
+          },
+          {
+            "character": "雅",
+            "reading": "아",
+            "meaning": "우아할",
+            "full_meaning": "우아할 아",
+            "strokes": 12,
+            "element": "목"
+          }
+        ]
+      }
+    },
+    {
+      "rank": 6,
+      "name": "이서",
+      "gender": "female",
+      "usage_count": 5003,
+      "popularity_score": 95,
+      "hanja": {
+        "characters": "李瑞",
+        "meaning": "오얏처럼 복되고 상서로운 사람",
+        "chars": [
+          {
+            "character": "李",
+            "reading": "이",
+            "meaning": "오얏",
+            "full_meaning": "오얏 이",
+            "strokes": 7,
+            "element": "금"
+          },
+          {
+            "character": "瑞",
+            "reading": "서",
+            "meaning": "상서로울",
+            "full_meaning": "상서로울 서",
+            "strokes": 14,
+            "element": "화"
+          }
+        ]
+      }
+    },
+    {
+      "rank": 7,
+      "name": "하준",
+      "gender": "male",
+      "usage_count": 4682,
+      "popularity_score": 94,
+      "hanja": {
+        "characters": "夏俊",
+        "meaning": "여름처럼 밝고 뛰어난 사람",
+        "chars": [
+          {
+            "character": "夏",
+            "reading": "하",
+            "meaning": "여름",
+            "full_meaning": "여름 하",
+            "strokes": 10,
+            "element": "수"
+          },
+          {
+            "character": "俊",
+            "reading": "준",
+            "meaning": "뛰어날",
+            "full_meaning": "뛰어날 준",
+            "strokes": 9,
+            "element": "수"
+          }
+        ]
+      }
+    },
+    {
+      "rank": 8,
+      "name": "지우",
+      "gender": "female",
+      "usage_count": 4637,
+      "popularity_score": 93,
+      "hanja": {
+        "characters": "智優",
+        "meaning": "지혜로우며 뛰어난 사람",
+        "chars": [
+          {
+            "character": "智",
+            "reading": "지",
+            "meaning": "지혜",
+            "full_meaning": "지혜 지",
+            "strokes": 12,
+            "element": "목"
+          },
+          {
+            "character": "優",
+            "reading": "우",
+            "meaning": "뛰어날",
+            "full_meaning": "뛰어날 우",
+            "strokes": 17,
+            "element": "금"
+          }
+        ]
+      }
+    },
+    {
+      "rank": 9,
+      "name": "이안",
+      "gender": "male",
+      "usage_count": 4581,
+      "popularity_score": 92,
+      "hanja": {
+        "characters": "李安",
+        "meaning": "오얏나무처럼 평온한 삶을 지닌 사람",
+        "chars": [
+          {
+            "character": "李",
+            "reading": "이",
+            "meaning": "오얏",
+            "full_meaning": "오얏 이",
+            "strokes": 7,
+            "element": "금"
+          },
+          {
+            "character": "安",
+            "reading": "안",
+            "meaning": "편안할",
+            "full_meaning": "편안할 안",
+            "strokes": 6,
+            "element": "토"
+          }
+        ]
+      }
+    },
+    {
+      "rank": 11,
+      "name": "은우",
+      "gender": "male",
+      "usage_count": 4341,
+      "popularity_score": 90,
+      "hanja": {
+        "characters": "恩祐",
+        "meaning": "은혜로움으로 남을 돕는 사람",
+        "chars": [
+          {
+            "character": "恩",
+            "reading": "은",
+            "meaning": "은혜",
+            "full_meaning": "은혜 은",
+            "strokes": 10,
+            "element": "수"
+          },
+          {
+            "character": "祐",
+            "reading": "우",
+            "meaning": "도울",
+            "full_meaning": "도울 우",
+            "strokes": 10,
+            "element": "수"
+          }
+        ]
+      }
+    },
+    {
+      "rank": 12,
+      "name": "하윤",
+      "gender": "female",
+      "usage_count": 4218,
+      "popularity_score": 89,
+      "hanja": {
+        "characters": "夏允",
+        "meaning": "여름처럼 넓고 너그러운 사람",
+        "chars": [
+          {
+            "character": "夏",
+            "reading": "하",
+            "meaning": "여름",
+            "full_meaning": "여름 하",
+            "strokes": 10,
+            "element": "수"
+          },
+          {
+            "character": "允",
+            "reading": "윤",
+            "meaning": "허락할",
+            "full_meaning": "허락할 윤",
+            "strokes": 4,
+            "element": "화"
+          }
+        ]
+      }
+    },
+    {
+      "rank": 13,
+      "name": "서윤",
+      "gender": "female",
+      "usage_count": 4125,
+      "popularity_score": 88,
+      "hanja": {
+        "characters": "瑞允",
+        "meaning": "상서로움과 너그러움을 가진 사람",
+        "chars": [
+          {
+            "character": "瑞",
+            "reading": "서",
+            "meaning": "상서로울",
+            "full_meaning": "상서로울 서",
+            "strokes": 14,
+            "element": "화"
+          },
+          {
+            "character": "允",
+            "reading": "윤",
+            "meaning": "허락할",
+            "full_meaning": "허락할 윤",
+            "strokes": 4,
+            "element": "화"
+          }
+        ]
+      }
+    },
+    {
+      "rank": 14,
+      "name": "서준",
+      "gender": "male",
+      "usage_count": 4075,
+      "popularity_score": 87,
+      "hanja": {
+        "characters": "瑞俊",
+        "meaning": "상서롭고 출중한 인재",
+        "chars": [
+          {
+            "character": "瑞",
+            "reading": "서",
+            "meaning": "상서로울",
+            "full_meaning": "상서로울 서",
+            "strokes": 14,
+            "element": "화"
+          },
+          {
+            "character": "俊",
+            "reading": "준",
+            "meaning": "뛰어날",
+            "full_meaning": "뛰어날 준",
+            "strokes": 9,
+            "element": "수"
+          }
+        ]
+      }
+    },
+    {
+      "rank": 15,
+      "name": "연우",
+      "gender": "male",
+      "usage_count": 4034,
+      "popularity_score": 86,
+      "hanja": {
+        "characters": "延佑",
+        "meaning": "도움이 이어지는 사람",
+        "chars": [
+          {
+            "character": "延",
+            "reading": "연",
+            "meaning": "이을",
+            "full_meaning": "이을 연",
+            "strokes": 7,
+            "element": "금"
+          },
+          {
+            "character": "佑",
+            "reading": "우",
+            "meaning": "도울",
+            "full_meaning": "도울 우",
+            "strokes": 7,
+            "element": "금"
+          }
+        ]
+      }
+    },
+    {
+      "rank": 16,
+      "name": "선우",
+      "gender": "male",
+      "usage_count": 3968,
+      "popularity_score": 85,
+      "hanja": {
+        "characters": "善宇",
+        "meaning": "선함과 넓은 마음을 지닌 사람",
+        "chars": [
+          {
+            "character": "善",
+            "reading": "선",
+            "meaning": "선할",
+            "full_meaning": "선할 선",
+            "strokes": 12,
+            "element": "목"
+          },
+          {
+            "character": "宇",
+            "reading": "우",
+            "meaning": "집",
+            "full_meaning": "집 우",
+            "strokes": 6,
+            "element": "토"
+          }
+        ]
+      }
+    },
+    {
+      "rank": 17,
+      "name": "하린",
+      "gender": "female",
+      "usage_count": 3935,
+      "popularity_score": 84,
+      "hanja": {
+        "characters": "夏麟",
+        "meaning": "여름과 같이 생명력 넘치는 기린 같은 사람",
+        "chars": [
+          {
+            "character": "夏",
+            "reading": "하",
+            "meaning": "여름",
+            "full_meaning": "여름 하",
+            "strokes": 10,
+            "element": "수"
+          },
+          {
+            "character": "麟",
+            "reading": "린",
+            "meaning": "기린",
+            "full_meaning": "기린 린",
+            "strokes": 23,
+            "element": "화"
+          }
+        ]
+      }
+    },
+    {
+      "rank": 18,
+      "name": "도현",
+      "gender": "male",
+      "usage_count": 3890,
+      "popularity_score": 83,
+      "hanja": {
+        "characters": "道賢",
+        "meaning": "바른 길을 걷는 어진 사람",
+        "chars": [
+          {
+            "character": "道",
+            "reading": "도",
+            "meaning": "길",
+            "full_meaning": "길 도",
+            "strokes": 16,
+            "element": "토"
+          },
+          {
+            "character": "賢",
+            "reading": "현",
+            "meaning": "어질",
+            "full_meaning": "어질 현",
+            "strokes": 15,
+            "element": "토"
+          }
+        ]
+      }
+    },
+    {
+      "rank": 19,
+      "name": "지호",
+      "gender": "male",
+      "usage_count": 3747,
+      "popularity_score": 82,
+      "hanja": {
+        "characters": "智浩",
+        "meaning": "지혜처럼 넓고 깊은 사람",
+        "chars": [
+          {
+            "character": "智",
+            "reading": "지",
+            "meaning": "지혜",
+            "full_meaning": "지혜 지",
+            "strokes": 12,
+            "element": "목"
+          },
+          {
+            "character": "浩",
+            "reading": "호",
+            "meaning": "넓을",
+            "full_meaning": "넓을 호",
+            "strokes": 11,
+            "element": "목"
+          }
+        ]
+      }
+    },
+    {
+      "rank": 20,
+      "name": "도하",
+      "gender": "male",
+      "usage_count": 3717,
+      "popularity_score": 81,
+      "hanja": {
+        "characters": "道河",
+        "meaning": "올곧은 길을 따라 흐르는 강처럼 살길",
+        "chars": [
+          {
+            "character": "道",
+            "reading": "도",
+            "meaning": "길",
+            "full_meaning": "길 도",
+            "strokes": 16,
+            "element": "토"
+          },
+          {
+            "character": "河",
+            "reading": "하",
+            "meaning": "강",
+            "full_meaning": "강 하",
+            "strokes": 9,
+            "element": "수"
+          }
+        ]
+      }
+    },
+    {
+      "rank": 21,
+      "name": "아윤",
+      "gender": "female",
+      "usage_count": 3712,
+      "popularity_score": 80,
+      "hanja": {
+        "characters": "雅允",
+        "meaning": "우아하고 너그러이 허락하는 사람",
+        "chars": [
+          {
+            "character": "雅",
+            "reading": "아",
+            "meaning": "우아할",
+            "full_meaning": "우아할 아",
+            "strokes": 12,
+            "element": "목"
+          },
+          {
+            "character": "允",
+            "reading": "윤",
+            "meaning": "허락할",
+            "full_meaning": "허락할 윤",
+            "strokes": 4,
+            "element": "화"
+          }
+        ]
+      }
+    },
+    {
+      "rank": 22,
+      "name": "지유",
+      "gender": "female",
+      "usage_count": 3698,
+      "popularity_score": 79,
+      "hanja": {
+        "characters": "智柔",
+        "meaning": "지혜롭고 부드러운 성품을 지닌 사람",
+        "chars": [
+          {
+            "character": "智",
+            "reading": "지",
+            "meaning": "지혜",
+            "full_meaning": "지혜 지",
+            "strokes": 12,
+            "element": "목"
+          },
+          {
+            "character": "柔",
+            "reading": "유",
+            "meaning": "부드러울",
+            "full_meaning": "부드러울 유",
+            "strokes": 9,
+            "element": "수"
+          }
+        ]
+      }
+    },
+    {
+      "rank": 23,
+      "name": "우주",
+      "gender": "male",
+      "usage_count": 3683,
+      "popularity_score": 78,
+      "hanja": {
+        "characters": "宇宙",
+        "meaning": "넓은 집과 넉넉한 그릇을 지닌 사람",
+        "chars": [
+          {
+            "character": "宇",
+            "reading": "우",
+            "meaning": "집",
+            "full_meaning": "집 우",
+            "strokes": 6,
+            "element": "토"
+          },
+          {
+            "character": "宙",
+            "reading": "주",
+            "meaning": "집",
+            "full_meaning": "집 주",
+            "strokes": 8,
+            "element": "금"
+          }
+        ]
+      }
+    },
+    {
+      "rank": 27,
+      "name": "유준",
+      "gender": "male",
+      "usage_count": 3449,
+      "popularity_score": 74,
+      "hanja": {
+        "characters": "裕俊",
+        "meaning": "넉넉하고 빼어난 재능을 지닌 이",
+        "chars": [
+          {
+            "character": "裕",
+            "reading": "유",
+            "meaning": "넉넉할",
+            "full_meaning": "넉넉할 유",
+            "strokes": 13,
+            "element": "화"
+          },
+          {
+            "character": "俊",
+            "reading": "준",
+            "meaning": "뛰어날",
+            "full_meaning": "뛰어날 준",
+            "strokes": 9,
+            "element": "수"
+          }
+        ]
+      }
+    },
+    {
+      "rank": 28,
+      "name": "시아",
+      "gender": "female",
+      "usage_count": 3442,
+      "popularity_score": 73,
+      "hanja": {
+        "characters": "詩雅",
+        "meaning": "시처럼 우아한 사람",
+        "chars": [
+          {
+            "character": "詩",
+            "reading": "시",
+            "meaning": "시",
+            "full_meaning": "시 시",
+            "strokes": 13,
+            "element": "화"
+          },
+          {
+            "character": "雅",
+            "reading": "아",
+            "meaning": "우아할",
+            "full_meaning": "우아할 아",
+            "strokes": 12,
+            "element": "목"
+          }
+        ]
+      }
+    },
+    {
+      "rank": 29,
+      "name": "지아",
+      "gender": "female",
+      "usage_count": 3387,
+      "popularity_score": 72,
+      "hanja": {
+        "characters": "智雅",
+        "meaning": "지혜롭고 우아한 사람",
+        "chars": [
+          {
+            "character": "智",
+            "reading": "지",
+            "meaning": "지혜",
+            "full_meaning": "지혜 지",
+            "strokes": 12,
+            "element": "목"
+          },
+          {
+            "character": "雅",
+            "reading": "아",
+            "meaning": "우아할",
+            "full_meaning": "우아할 아",
+            "strokes": 12,
+            "element": "목"
+          }
+        ]
+      }
+    },
+    {
+      "rank": 30,
+      "name": "재이",
+      "gender": "female",
+      "usage_count": 3282,
+      "popularity_score": 71,
+      "hanja": {
+        "characters": "才二",
+        "meaning": "두 배의 재능을 가진",
+        "chars": [
+          {
+            "character": "才",
+            "reading": "재",
+            "meaning": "재주",
+            "full_meaning": "재주 재",
+            "strokes": 4,
+            "element": "화"
+          },
+          {
+            "character": "二",
+            "reading": "이",
+            "meaning": "둘",
+            "full_meaning": "둘 이",
+            "strokes": 2,
+            "element": "목"
+          }
+        ]
+      }
+    },
+    {
+      "rank": 32,
+      "name": "시윤",
+      "gender": "male",
+      "usage_count": 3018,
+      "popularity_score": 69,
+      "hanja": {
+        "characters": "時允",
+        "meaning": "때를 아는 지혜와 너그러움을 함께 가진 이",
+        "chars": [
+          {
+            "character": "時",
+            "reading": "시",
+            "meaning": "때",
+            "full_meaning": "때 시",
+            "strokes": 10,
+            "element": "수"
+          },
+          {
+            "character": "允",
+            "reading": "윤",
+            "meaning": "허락할",
+            "full_meaning": "허락할 윤",
+            "strokes": 4,
+            "element": "화"
+          }
+        ]
+      }
+    },
+    {
+      "rank": 33,
+      "name": "서하",
+      "gender": "female",
+      "usage_count": 2952,
+      "popularity_score": 68,
+      "hanja": {
+        "characters": "瑞夏",
+        "meaning": "길조와 여름의 따뜻함을 가진 사람",
+        "chars": [
+          {
+            "character": "瑞",
+            "reading": "서",
+            "meaning": "상서로울",
+            "full_meaning": "상서로울 서",
+            "strokes": 14,
+            "element": "화"
+          },
+          {
+            "character": "夏",
+            "reading": "하",
+            "meaning": "여름",
+            "full_meaning": "여름 하",
+            "strokes": 10,
+            "element": "수"
+          }
+        ]
+      }
+    },
+    {
+      "rank": 34,
+      "name": "윤서",
+      "gender": "female",
+      "usage_count": 2936,
+      "popularity_score": 67,
+      "hanja": {
+        "characters": "允瑞",
+        "meaning": "넉넉한 허락과 상서로움을 지닌 사람",
+        "chars": [
+          {
+            "character": "允",
+            "reading": "윤",
+            "meaning": "허락할",
+            "full_meaning": "허락할 윤",
+            "strokes": 4,
+            "element": "화"
+          },
+          {
+            "character": "瑞",
+            "reading": "서",
+            "meaning": "상서로울",
+            "full_meaning": "상서로울 서",
+            "strokes": 14,
+            "element": "화"
+          }
+        ]
+      }
+    },
+    {
+      "rank": 36,
+      "name": "윤우",
+      "gender": "male",
+      "usage_count": 2903,
+      "popularity_score": 65,
+      "hanja": {
+        "characters": "潤宇",
+        "meaning": "윤택함 속에 넓은 품을 지닌 아이",
+        "chars": [
+          {
+            "character": "潤",
+            "reading": "윤",
+            "meaning": "윤택할",
+            "full_meaning": "윤택할 윤",
+            "strokes": 16,
+            "element": "토"
+          },
+          {
+            "character": "宇",
+            "reading": "우",
+            "meaning": "집",
+            "full_meaning": "집 우",
+            "strokes": 6,
+            "element": "토"
+          }
+        ]
+      }
+    },
+    {
+      "rank": 37,
+      "name": "태이",
+      "gender": "male",
+      "usage_count": 2840,
+      "popularity_score": 64,
+      "hanja": {
+        "characters": "太二",
+        "meaning": "커다란 그릇과 둘의 조화",
+        "chars": [
+          {
+            "character": "太",
+            "reading": "태",
+            "meaning": "클",
+            "full_meaning": "클 태",
+            "strokes": 4,
+            "element": "화"
+          },
+          {
+            "character": "二",
+            "reading": "이",
+            "meaning": "둘",
+            "full_meaning": "둘 이",
+            "strokes": 2,
+            "element": "목"
+          }
+        ]
+      }
+    },
+    {
+      "rank": 38,
+      "name": "예준",
+      "gender": "male",
+      "usage_count": 2807,
+      "popularity_score": 63,
+      "hanja": {
+        "characters": "禮俊",
+        "meaning": "예의와 뛰어난 재능을 함께 가진 사람",
+        "chars": [
+          {
+            "character": "禮",
+            "reading": "예",
+            "meaning": "예도",
+            "full_meaning": "예도 예",
+            "strokes": 18,
+            "element": "금"
+          },
+          {
+            "character": "俊",
+            "reading": "준",
+            "meaning": "뛰어날",
+            "full_meaning": "뛰어날 준",
+            "strokes": 9,
+            "element": "수"
+          }
+        ]
+      }
+    },
+    {
+      "rank": 39,
+      "name": "유하",
+      "gender": "female",
+      "usage_count": 2773,
+      "popularity_score": 62,
+      "hanja": {
+        "characters": "裕夏",
+        "meaning": "넉넉함과 여름의 따스함을 품은 아이",
+        "chars": [
+          {
+            "character": "裕",
+            "reading": "유",
+            "meaning": "넉넉할",
+            "full_meaning": "넉넉할 유",
+            "strokes": 13,
+            "element": "화"
+          },
+          {
+            "character": "夏",
+            "reading": "하",
+            "meaning": "여름",
+            "full_meaning": "여름 하",
+            "strokes": 10,
+            "element": "수"
+          }
+        ]
+      }
+    },
+    {
+      "rank": 40,
+      "name": "유나",
+      "gender": "female",
+      "usage_count": 2747,
+      "popularity_score": 61,
+      "hanja": {
+        "characters": "柳娜",
+        "meaning": "버들처럼 아름답고 부드러운 사람",
+        "chars": [
+          {
+            "character": "柳",
+            "reading": "유",
+            "meaning": "버들",
+            "full_meaning": "버들 유",
+            "strokes": 9,
+            "element": "수"
+          },
+          {
+            "character": "娜",
+            "reading": "나",
+            "meaning": "아름다울",
+            "full_meaning": "아름다울 나",
+            "strokes": 10,
+            "element": "수"
+          }
+        ]
+      }
+    },
+    {
+      "rank": 41,
+      "name": "은호",
+      "gender": "male",
+      "usage_count": 2733,
+      "popularity_score": 60,
+      "hanja": {
+        "characters": "恩浩",
+        "meaning": "은혜로움과 넓은 마음을 가진 사람",
+        "chars": [
+          {
+            "character": "恩",
+            "reading": "은",
+            "meaning": "은혜",
+            "full_meaning": "은혜 은",
+            "strokes": 10,
+            "element": "수"
+          },
+          {
+            "character": "浩",
+            "reading": "호",
+            "meaning": "넓을",
+            "full_meaning": "넓을 호",
+            "strokes": 11,
+            "element": "목"
+          }
+        ]
+      }
+    },
+    {
+      "rank": 42,
+      "name": "수아",
+      "gender": "female",
+      "usage_count": 2690,
+      "popularity_score": 59,
+      "hanja": {
+        "characters": "秀雅",
+        "meaning": "빼어남과 우아함을 함께 가진 사람",
+        "chars": [
+          {
+            "character": "秀",
+            "reading": "수",
+            "meaning": "빼어날",
+            "full_meaning": "빼어날 수",
+            "strokes": 7,
+            "element": "금"
+          },
+          {
+            "character": "雅",
+            "reading": "아",
+            "meaning": "우아할",
+            "full_meaning": "우아할 아",
+            "strokes": 12,
+            "element": "목"
+          }
+        ]
+      }
+    },
+    {
+      "rank": 47,
+      "name": "우진",
+      "gender": "male",
+      "usage_count": 2523,
+      "popularity_score": 54,
+      "hanja": {
+        "characters": "宇眞",
+        "meaning": "넓은 그릇과 참된 마음을 가진 이",
+        "chars": [
+          {
+            "character": "宇",
+            "reading": "우",
+            "meaning": "집",
+            "full_meaning": "집 우",
+            "strokes": 6,
+            "element": "토"
+          },
+          {
+            "character": "眞",
+            "reading": "진",
+            "meaning": "참",
+            "full_meaning": "참 진",
+            "strokes": 10,
+            "element": "수"
+          }
+        ]
+      }
+    },
+    {
+      "rank": 50,
+      "name": "하진",
+      "gender": "male",
+      "usage_count": 2463,
+      "popularity_score": 51,
+      "hanja": {
+        "characters": "夏眞",
+        "meaning": "여름의 맑고 참된 마음을 가진 사람",
+        "chars": [
+          {
+            "character": "夏",
+            "reading": "하",
+            "meaning": "여름",
+            "full_meaning": "여름 하",
+            "strokes": 10,
+            "element": "수"
+          },
+          {
+            "character": "眞",
+            "reading": "진",
+            "meaning": "참",
+            "full_meaning": "참 진",
+            "strokes": 10,
+            "element": "수"
+          }
+        ]
+      }
+    },
+    {
+      "rank": 51,
+      "name": "도아",
+      "gender": "female",
+      "usage_count": 2446,
+      "popularity_score": 50,
+      "hanja": {
+        "characters": "道雅",
+        "meaning": "바른 길을 걷는 우아함을 지닌 사람",
+        "chars": [
+          {
+            "character": "道",
+            "reading": "도",
+            "meaning": "길",
+            "full_meaning": "길 도",
+            "strokes": 16,
+            "element": "토"
+          },
+          {
+            "character": "雅",
+            "reading": "아",
+            "meaning": "우아할",
+            "full_meaning": "우아할 아",
+            "strokes": 12,
+            "element": "목"
+          }
+        ]
+      }
+    },
+    {
+      "rank": 54,
+      "name": "유안",
+      "gender": "male",
+      "usage_count": 2397,
+      "popularity_score": 47,
+      "hanja": {
+        "characters": "裕安",
+        "meaning": "넉넉함과 평온함을 동시에 지닌 이",
+        "chars": [
+          {
+            "character": "裕",
+            "reading": "유",
+            "meaning": "넉넉할",
+            "full_meaning": "넉넉할 유",
+            "strokes": 13,
+            "element": "화"
+          },
+          {
+            "character": "安",
+            "reading": "안",
+            "meaning": "편안할",
+            "full_meaning": "편안할 안",
+            "strokes": 6,
+            "element": "토"
+          }
+        ]
+      }
+    },
+    {
+      "rank": 55,
+      "name": "준우",
+      "gender": "male",
+      "usage_count": 2353,
+      "popularity_score": 46,
+      "hanja": {
+        "characters": "俊宇",
+        "meaning": "뛰어난 그릇과 넓은 마음을 지닌 이",
+        "chars": [
+          {
+            "character": "俊",
+            "reading": "준",
+            "meaning": "뛰어날",
+            "full_meaning": "뛰어날 준",
+            "strokes": 9,
+            "element": "수"
+          },
+          {
+            "character": "宇",
+            "reading": "우",
+            "meaning": "집",
+            "full_meaning": "집 우",
+            "strokes": 6,
+            "element": "토"
+          }
+        ]
+      }
+    },
+    {
+      "rank": 57,
+      "name": "민준",
+      "gender": "male",
+      "usage_count": 2270,
+      "popularity_score": 44,
+      "hanja": {
+        "characters": "敏俊",
+        "meaning": "민첩하고 재능 있는 사람",
+        "chars": [
+          {
+            "character": "敏",
+            "reading": "민",
+            "meaning": "민첩할",
+            "full_meaning": "민첩할 민",
+            "strokes": 11,
+            "element": "목"
+          },
+          {
+            "character": "俊",
+            "reading": "준",
+            "meaning": "뛰어날",
+            "full_meaning": "뛰어날 준",
+            "strokes": 9,
+            "element": "수"
+          }
+        ]
+      }
+    },
+    {
+      "rank": 58,
+      "name": "나은",
+      "gender": "female",
+      "usage_count": 2230,
+      "popularity_score": 43,
+      "hanja": {
+        "characters": "娜恩",
+        "meaning": "고운 마음 위에 은혜로움을 담은 사람",
+        "chars": [
+          {
+            "character": "娜",
+            "reading": "나",
+            "meaning": "아름다울",
+            "full_meaning": "아름다울 나",
+            "strokes": 10,
+            "element": "수"
+          },
+          {
+            "character": "恩",
+            "reading": "은",
+            "meaning": "은혜",
+            "full_meaning": "은혜 은",
+            "strokes": 10,
+            "element": "수"
+          }
+        ]
+      }
+    },
+    {
+      "rank": 59,
+      "name": "리아",
+      "gender": "female",
+      "usage_count": 2230,
+      "popularity_score": 42,
+      "hanja": {
+        "characters": "利雅",
+        "meaning": "이로움과 우아함을 함께 가진 이",
+        "chars": [
+          {
+            "character": "利",
+            "reading": "리",
+            "meaning": "이로울",
+            "full_meaning": "이로울 리",
+            "strokes": 7,
+            "element": "금"
+          },
+          {
+            "character": "雅",
+            "reading": "아",
+            "meaning": "우아할",
+            "full_meaning": "우아할 아",
+            "strokes": 12,
+            "element": "목"
+          }
+        ]
+      }
+    },
+    {
+      "rank": 60,
+      "name": "이나",
+      "gender": "female",
+      "usage_count": 2220,
+      "popularity_score": 41,
+      "hanja": {
+        "characters": "李娜",
+        "meaning": "오얏처럼 곱고 아름다운 사람",
+        "chars": [
+          {
+            "character": "李",
+            "reading": "이",
+            "meaning": "오얏",
+            "full_meaning": "오얏 이",
+            "strokes": 7,
+            "element": "금"
+          },
+          {
+            "character": "娜",
+            "reading": "나",
+            "meaning": "아름다울",
+            "full_meaning": "아름다울 나",
+            "strokes": 10,
+            "element": "수"
+          }
+        ]
+      }
+    },
+    {
+      "rank": 61,
+      "name": "도준",
+      "gender": "male",
+      "usage_count": 2210,
+      "popularity_score": 40,
+      "hanja": {
+        "characters": "道俊",
+        "meaning": "바른 길을 뚜렷이 걷는 뛰어난 사람",
+        "chars": [
+          {
+            "character": "道",
+            "reading": "도",
+            "meaning": "길",
+            "full_meaning": "길 도",
+            "strokes": 16,
+            "element": "토"
+          },
+          {
+            "character": "俊",
+            "reading": "준",
+            "meaning": "뛰어날",
+            "full_meaning": "뛰어날 준",
+            "strokes": 9,
+            "element": "수"
+          }
+        ]
+      }
+    },
+    {
+      "rank": 62,
+      "name": "예나",
+      "gender": "female",
+      "usage_count": 2200,
+      "popularity_score": 39,
+      "hanja": {
+        "characters": "禮娜",
+        "meaning": "예의 바르고 아름다움을 갖춘 이",
+        "chars": [
+          {
+            "character": "禮",
+            "reading": "예",
+            "meaning": "예의",
+            "full_meaning": "예의 예",
+            "strokes": 18,
+            "element": "금"
+          },
+          {
+            "character": "娜",
+            "reading": "나",
+            "meaning": "아름다울",
+            "full_meaning": "아름다울 나",
+            "strokes": 10,
+            "element": "수"
+          }
+        ]
+      }
+    },
+    {
+      "rank": 63,
+      "name": "소이",
+      "gender": "female",
+      "usage_count": 2160,
+      "popularity_score": 38,
+      "hanja": {
+        "characters": "昭李",
+        "meaning": "밝은 마음으로 오얏처럼 바른 사람",
+        "chars": [
+          {
+            "character": "昭",
+            "reading": "소",
+            "meaning": "밝을",
+            "full_meaning": "밝을 소",
+            "strokes": 9,
+            "element": "수"
+          },
+          {
+            "character": "李",
+            "reading": "이",
+            "meaning": "오얏",
+            "full_meaning": "오얏 이",
+            "strokes": 7,
+            "element": "금"
+          }
+        ]
+      }
+    },
+    {
+      "rank": 64,
+      "name": "지후",
+      "gender": "male",
+      "usage_count": 2145,
+      "popularity_score": 37,
+      "hanja": {
+        "characters": "智厚",
+        "meaning": "지혜와 깊이를 고루 갖춘 사람",
+        "chars": [
+          {
+            "character": "智",
+            "reading": "지",
+            "meaning": "지혜",
+            "full_meaning": "지혜 지",
+            "strokes": 12,
+            "element": "목"
+          },
+          {
+            "character": "厚",
+            "reading": "후",
+            "meaning": "두터울",
+            "full_meaning": "두터울 후",
+            "strokes": 9,
+            "element": "수"
+          }
+        ]
+      }
+    },
+    {
+      "rank": 66,
+      "name": "서진",
+      "gender": "male",
+      "usage_count": 2100,
+      "popularity_score": 35,
+      "hanja": {
+        "characters": "瑞眞",
+        "meaning": "길조와 진실된 마음을 지닌 사람",
+        "chars": [
+          {
+            "character": "瑞",
+            "reading": "서",
+            "meaning": "상서로울",
+            "full_meaning": "상서로울 서",
+            "strokes": 14,
+            "element": "화"
+          },
+          {
+            "character": "眞",
+            "reading": "진",
+            "meaning": "진실할",
+            "full_meaning": "진실할 진",
+            "strokes": 10,
+            "element": "수"
+          }
+        ]
+      }
+    },
+    {
+      "rank": 69,
+      "name": "예린",
+      "gender": "female",
+      "usage_count": 2053,
+      "popularity_score": 32,
+      "hanja": {
+        "characters": "禮麟",
+        "meaning": "예의와 기품을 모두 갖춘 아이",
+        "chars": [
+          {
+            "character": "禮",
+            "reading": "예",
+            "meaning": "예의",
+            "full_meaning": "예의 예",
+            "strokes": 18,
+            "element": "금"
+          },
+          {
+            "character": "麟",
+            "reading": "린",
+            "meaning": "기린",
+            "full_meaning": "기린 린",
+            "strokes": 23,
+            "element": "화"
+          }
+        ]
+      }
+    },
+    {
+      "rank": 70,
+      "name": "하은",
+      "gender": "female",
+      "usage_count": 2048,
+      "popularity_score": 31,
+      "hanja": {
+        "characters": "夏恩",
+        "meaning": "여름 햇살처럼 따뜻한 은혜를 가진 사람",
+        "chars": [
+          {
+            "character": "夏",
+            "reading": "하",
+            "meaning": "여름",
+            "full_meaning": "여름 하",
+            "strokes": 10,
+            "element": "수"
+          },
+          {
+            "character": "恩",
+            "reading": "은",
+            "meaning": "은혜",
+            "full_meaning": "은혜 은",
+            "strokes": 10,
+            "element": "수"
+          }
+        ]
+      }
+    },
+    {
+      "rank": 73,
+      "name": "서연",
+      "gender": "female",
+      "usage_count": 1995,
+      "popularity_score": 28,
+      "hanja": {
+        "characters": "瑞姸",
+        "meaning": "상서로움과 고운 아름다움을 가진 사람",
+        "chars": [
+          {
+            "character": "瑞",
+            "reading": "서",
+            "meaning": "상서로울",
+            "full_meaning": "상서로울 서",
+            "strokes": 14,
+            "element": "화"
+          },
+          {
+            "character": "姸",
+            "reading": "연",
+            "meaning": "고울",
+            "full_meaning": "고울 연",
+            "strokes": 9,
+            "element": "수"
+          }
+        ]
+      }
+    },
+    {
+      "rank": 74,
+      "name": "태리",
+      "gender": "female",
+      "usage_count": 1987,
+      "popularity_score": 27,
+      "hanja": {
+        "characters": "太利",
+        "meaning": "넓은 그릇에 이로움을 더한 아이",
+        "chars": [
+          {
+            "character": "太",
+            "reading": "태",
+            "meaning": "클",
+            "full_meaning": "클 태",
+            "strokes": 4,
+            "element": "화"
+          },
+          {
+            "character": "利",
+            "reading": "리",
+            "meaning": "이로울",
+            "full_meaning": "이로울 리",
+            "strokes": 7,
+            "element": "금"
+          }
+        ]
+      }
+    },
+    {
+      "rank": 79,
+      "name": "이도",
+      "gender": "male",
+      "usage_count": 1838,
+      "popularity_score": 22,
+      "hanja": {
+        "characters": "李道",
+        "meaning": "오얏처럼 바른 길을 걷는 사람",
+        "chars": [
+          {
+            "character": "李",
+            "reading": "이",
+            "meaning": "오얏",
+            "full_meaning": "오얏 이",
+            "strokes": 7,
+            "element": "금"
+          },
+          {
+            "character": "道",
+            "reading": "도",
+            "meaning": "길",
+            "full_meaning": "길 도",
+            "strokes": 16,
+            "element": "토"
+          }
+        ]
+      }
+    },
+    {
+      "rank": 80,
+      "name": "시안",
+      "gender": "male",
+      "usage_count": 1784,
+      "popularity_score": 21,
+      "hanja": {
+        "characters": "時安",
+        "meaning": "평안한 때를 살아가는 현명한 사람",
+        "chars": [
+          {
+            "character": "時",
+            "reading": "시",
+            "meaning": "시간",
+            "full_meaning": "시간 시",
+            "strokes": 10,
+            "element": "수"
+          },
+          {
+            "character": "安",
+            "reading": "안",
+            "meaning": "편안할",
+            "full_meaning": "편안할 안",
+            "strokes": 6,
+            "element": "토"
+          }
+        ]
+      }
+    },
+    {
+      "rank": 81,
+      "name": "유진",
+      "gender": "female",
+      "usage_count": 1772,
+      "popularity_score": 20,
+      "hanja": {
+        "characters": "裕眞",
+        "meaning": "넉넉함과 진실함을 두루 갖춘 사람",
+        "chars": [
+          {
+            "character": "裕",
+            "reading": "유",
+            "meaning": "넉넉함",
+            "full_meaning": "넉넉할 유",
+            "strokes": 13,
+            "element": "화"
+          },
+          {
+            "character": "眞",
+            "reading": "진",
+            "meaning": "참됨",
+            "full_meaning": "참 진",
+            "strokes": 10,
+            "element": "수"
+          }
+        ]
+      }
+    },
+    {
+      "rank": 84,
+      "name": "건우",
+      "gender": "male",
+      "usage_count": 1731,
+      "popularity_score": 17,
+      "hanja": {
+        "characters": "健祐",
+        "meaning": "건강하고 남을 돕는 사람",
+        "chars": [
+          {
+            "character": "健",
+            "reading": "건",
+            "meaning": "건강할",
+            "full_meaning": "건강할 건",
+            "strokes": 11,
+            "element": "목"
+          },
+          {
+            "character": "祐",
+            "reading": "우",
+            "meaning": "도울",
+            "full_meaning": "도울 우",
+            "strokes": 10,
+            "element": "수"
+          }
+        ]
+      }
+    },
+    {
+      "rank": 85,
+      "name": "시현",
+      "gender": "male",
+      "usage_count": 1725,
+      "popularity_score": 16,
+      "hanja": {
+        "characters": "時賢",
+        "meaning": "지혜로 때를 아는 현명한 이",
+        "chars": [
+          {
+            "character": "時",
+            "reading": "시",
+            "meaning": "시간",
+            "full_meaning": "시간 시",
+            "strokes": 10,
+            "element": "수"
+          },
+          {
+            "character": "賢",
+            "reading": "현",
+            "meaning": "현명할",
+            "full_meaning": "현명할 현",
+            "strokes": 15,
+            "element": "토"
+          }
+        ]
+      }
+    },
+    {
+      "rank": 87,
+      "name": "채윤",
+      "gender": "female",
+      "usage_count": 1705,
+      "popularity_score": 14,
+      "hanja": {
+        "characters": "彩潤",
+        "meaning": "찬란한 빛과 넉넉한 윤택함을 가진 아이",
+        "chars": [
+          {
+            "character": "彩",
+            "reading": "채",
+            "meaning": "고운 빛",
+            "full_meaning": "빛날 채",
+            "strokes": 11,
+            "element": "목"
+          },
+          {
+            "character": "潤",
+            "reading": "윤",
+            "meaning": "윤택",
+            "full_meaning": "윤택할 윤",
+            "strokes": 16,
+            "element": "토"
+          }
+        ]
+      }
+    },
+    {
+      "rank": 88,
+      "name": "현우",
+      "gender": "male",
+      "usage_count": 1687,
+      "popularity_score": 13,
+      "hanja": {
+        "characters": "賢祐",
+        "meaning": "어짐으로 남을 돕는 사람",
+        "chars": [
+          {
+            "character": "賢",
+            "reading": "현",
+            "meaning": "어질",
+            "full_meaning": "어질 현",
+            "strokes": 15,
+            "element": "토"
+          },
+          {
+            "character": "祐",
+            "reading": "우",
+            "meaning": "도울",
+            "full_meaning": "도울 우",
+            "strokes": 10,
+            "element": "수"
+          }
+        ]
+      }
+    },
+    {
+      "rank": 90,
+      "name": "유찬",
+      "gender": "male",
+      "usage_count": 1684,
+      "popularity_score": 11,
+      "hanja": {
+        "characters": "裕燦",
+        "meaning": "넉넉함과 밝고 빛나는 기운이 깃든 사람",
+        "chars": [
+          {
+            "character": "裕",
+            "reading": "유",
+            "meaning": "넉넉할",
+            "full_meaning": "넉넉할 유",
+            "strokes": 13,
+            "element": "화"
+          },
+          {
+            "character": "燦",
+            "reading": "찬",
+            "meaning": "빛날",
+            "full_meaning": "빛날 찬",
+            "strokes": 17,
+            "element": "금"
+          }
+        ]
+      }
+    },
+    {
+      "rank": 91,
+      "name": "서현",
+      "gender": "female",
+      "usage_count": 1663,
+      "popularity_score": 10,
+      "hanja": {
+        "characters": "瑞賢",
+        "meaning": "상서로움과 어짐을 함께 지닌 사람",
+        "chars": [
+          {
+            "character": "瑞",
+            "reading": "서",
+            "meaning": "상서로울",
+            "full_meaning": "상서로울 서",
+            "strokes": 14,
+            "element": "화"
+          },
+          {
+            "character": "賢",
+            "reading": "현",
+            "meaning": "어질",
+            "full_meaning": "어질 현",
+            "strokes": 15,
+            "element": "토"
+          }
+        ]
+      }
+    },
+    {
+      "rank": 93,
+      "name": "아인",
+      "gender": "female",
+      "usage_count": 1638,
+      "popularity_score": 8,
+      "hanja": {
+        "characters": "雅仁",
+        "meaning": "우아함과 어진 품성을 모두 갖춘 이",
+        "chars": [
+          {
+            "character": "雅",
+            "reading": "아",
+            "meaning": "우아",
+            "full_meaning": "우아할 아",
+            "strokes": 12,
+            "element": "목"
+          },
+          {
+            "character": "仁",
+            "reading": "인",
+            "meaning": "어짊",
+            "full_meaning": "어질 인",
+            "strokes": 4,
+            "element": "화"
+          }
+        ]
+      }
+    },
+    {
+      "rank": 94,
+      "name": "윤아",
+      "gender": "female",
+      "usage_count": 1620,
+      "popularity_score": 7,
+      "hanja": {
+        "characters": "潤雅",
+        "meaning": "윤택함과 우아함을 함께 지닌 사람",
+        "chars": [
+          {
+            "character": "潤",
+            "reading": "윤",
+            "meaning": "윤택할",
+            "full_meaning": "윤택할 윤",
+            "strokes": 16,
+            "element": "토"
+          },
+          {
+            "character": "雅",
+            "reading": "아",
+            "meaning": "우아할",
+            "full_meaning": "우아할 아",
+            "strokes": 12,
+            "element": "목"
+          }
+        ]
+      }
+    },
+    {
+      "rank": 95,
+      "name": "태하",
+      "gender": "male",
+      "usage_count": 1577,
+      "popularity_score": 6,
+      "hanja": {
+        "characters": "泰夏",
+        "meaning": "평온하고 따스한 여름처럼 살아가는 이",
+        "chars": [
+          {
+            "character": "泰",
+            "reading": "태",
+            "meaning": "편안할",
+            "full_meaning": "편안할 태",
+            "strokes": 9,
+            "element": "수"
+          },
+          {
+            "character": "夏",
+            "reading": "하",
+            "meaning": "여름",
+            "full_meaning": "여름 하",
+            "strokes": 10,
+            "element": "수"
+          }
+        ]
+      }
+    },
+    {
+      "rank": 97,
+      "name": "다인",
+      "gender": "female",
+      "usage_count": 1520,
+      "popularity_score": 4,
+      "hanja": {
+        "characters": "多仁",
+        "meaning": "풍성한 마음과 온정을 고루 갖춘 사람",
+        "chars": [
+          {
+            "character": "多",
+            "reading": "다",
+            "meaning": "풍성",
+            "full_meaning": "많을 다",
+            "strokes": 6,
+            "element": "토"
+          },
+          {
+            "character": "仁",
+            "reading": "인",
+            "meaning": "어짊",
+            "full_meaning": "어질 인",
+            "strokes": 4,
+            "element": "화"
+          }
+        ]
+      }
+    },
+    {
+      "rank": 99,
+      "name": "시은",
+      "gender": "female",
+      "usage_count": 1499,
+      "popularity_score": 2,
+      "hanja": {
+        "characters": "時恩",
+        "meaning": "적절한 때에 은혜를 베푸는 아이",
+        "chars": [
+          {
+            "character": "時",
+            "reading": "시",
+            "meaning": "때",
+            "full_meaning": "시간 시",
+            "strokes": 10,
+            "element": "수"
+          },
+          {
+            "character": "恩",
+            "reading": "은",
+            "meaning": "은혜",
+            "full_meaning": "은혜 은",
+            "strokes": 10,
+            "element": "수"
+          }
+        ]
+      }
+    },
+    {
+      "rank": 100,
+      "name": "하민",
+      "gender": "male",
+      "usage_count": 1496,
+      "popularity_score": 1,
+      "hanja": {
+        "characters": "夏敏",
+        "meaning": "여름처럼 활기차고 민첩한 사람",
+        "chars": [
+          {
+            "character": "夏",
+            "reading": "하",
+            "meaning": "여름",
+            "full_meaning": "여름 하",
+            "strokes": 10,
+            "element": "수"
+          },
+          {
+            "character": "敏",
+            "reading": "민",
+            "meaning": "민첩",
+            "full_meaning": "민첩할 민",
+            "strokes": 11,
+            "element": "목"
+          }
+        ]
+      }
+    }
+  ]
+}
