@@ -4,8 +4,8 @@ import { getTossOrderStatus, isTossOrderPaid } from '@/lib/toss/iap-client';
 import { jsonWithCors, preflight } from '@/lib/http/cors';
 
 const allowMock = process.env.ALLOW_IAP_MOCK === 'true';
-const verifyRetries = Number(process.env.TOSS_IAP_VERIFY_RETRIES || '6');
-const verifyRetryDelayMs = Number(process.env.TOSS_IAP_VERIFY_RETRY_DELAY_MS || '1000');
+const verifyRetries = Number(process.env.TOSS_IAP_VERIFY_RETRIES || '20');
+const verifyRetryDelayMs = Number(process.env.TOSS_IAP_VERIFY_RETRY_DELAY_MS || '1200');
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));

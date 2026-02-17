@@ -124,12 +124,51 @@ export async function getTossOrderStatus({ orderId, userKey }: TossOrderStatusRe
 
 export function isTossOrderPaid(payload: TossApiResponse) {
   const data = (payload?.data ?? {}) as Record<string, unknown>;
-  const status = String(
-    data.orderStatus ?? data.status ?? payload.orderStatus ?? payload.status ?? ''
-  ).toUpperCase();
-  const paidLikeStatuses = new Set(['COMPLETE', 'COMPLETED', 'DONE', 'SUCCESS', 'PAID']);
+  const rawStatus =
+    data.orderStatus ??
+    data.status ??
+    data.purchaseStatus ??
+    data.paymentStatus ??
+    data.state ??
+    data.purchaseState ??
+    payload.orderStatus ??
+    payload.status ??
+    payload.state;
+
+  const status = String(rawStatus ?? '').toUpperCase().trim();
+
+  const paidLikeStatuses = new Set([
+    'COMPLETE',
+    'COMPLETED',
+    'DONE',
+    'SUCCESS',
+    'PAID',
+    'PURCHASED',
+    'PURCHASE_COMPLETE',
+    'PURCHASE_COMPLETED',
+    'PAYMENT_COMPLETED',
+    'CHARGED',
+  ]);
+
+  const failedLikeStatuses = new Set([
+    'CANCELED',
+    'CANCELLED',
+    'REFUNDED',
+    'FAILED',
+    'FAIL',
+    'PENDING',
+    'READY',
+    'WAITING',
+  ]);
 
   if (paidLikeStatuses.has(status)) return true;
-  if (data.isCompleted === true || data.isPaid === true) return true;
+  if (failedLikeStatuses.has(status)) return false;
+
+  if (data.isCompleted === true || data.isPaid === true || data.purchased === true) return true;
+
+  // 응답 코드가 성공인데 상태 문자열만 예외적으로 들어온 경우를 보완
+  if (typeof payload.code === 'string' && payload.code.toUpperCase() === 'SUCCESS' && status) {
+    return !failedLikeStatuses.has(status);
+  }
   return false;
 }
