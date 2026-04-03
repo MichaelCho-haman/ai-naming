@@ -1,4 +1,5 @@
 import { NamingResult } from '@/types';
+import { FREE_PREVIEW_COUNT } from '@/lib/naming/access-policy';
 
 export function maskLockedNames(result: NamingResult, shouldLock: boolean): NamingResult {
   if (!shouldLock) return result;
@@ -6,7 +7,7 @@ export function maskLockedNames(result: NamingResult, shouldLock: boolean): Nami
   return {
     ...result,
     names: result.names.map((name, index) => {
-      if (index === 0) return name;
+      if (index < FREE_PREVIEW_COUNT) return name;
       return {
         ...name,
         koreanName: '결제 후 공개',

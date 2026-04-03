@@ -6,6 +6,7 @@ import { IAP, appLogin } from '@apps-in-toss/web-framework';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import { NamingResult, NameSuggestion } from '@/types';
+import { FREE_PREVIEW_COUNT, LOCKED_RECOMMENDATION_COUNT, TOTAL_RECOMMENDATION_COUNT } from '@/lib/naming/access-policy';
 
 interface Props {
   namingId: string;
@@ -151,10 +152,10 @@ export default function ResultClient({ namingId, lastName, result, paymentStatus
   }, [namingId, currentPaymentStatus]);
 
   const isLockedMode = isTossTarget && currentPaymentStatus !== 'paid';
-  const lockedCount = Math.max(result.names.length - 1, 0);
+  const lockedCount = Math.max(result.names.length - FREE_PREVIEW_COUNT, 0);
 
   const namesWithLock = useMemo(
-    () => result.names.map((name, index) => ({ name, locked: isLockedMode && index > 0 })),
+    () => result.names.map((name, index) => ({ name, locked: isLockedMode && index >= FREE_PREVIEW_COUNT })),
     [result.names, isLockedMode]
   );
 
@@ -346,14 +347,14 @@ export default function ResultClient({ namingId, lastName, result, paymentStatus
         <h1 className="text-2xl font-bold text-[var(--gray-900)] mb-2">
           {lastName}씨 아이를 위한<br />추천 이름
         </h1>
-        <p className="text-[var(--gray-500)]">총 {result.names.length}개의 이름을 추천해드려요</p>
+        <p className="text-[var(--gray-500)]">총 {TOTAL_RECOMMENDATION_COUNT}개의 이름을 추천해드려요</p>
       </div>
 
       {isLockedMode && (
         <Card className="mb-4 bg-[var(--blue-light)] border border-[var(--blue-primary)]/20">
-          <h2 className="font-bold text-[var(--gray-900)] mb-1">1개 무료 공개</h2>
+          <h2 className="font-bold text-[var(--gray-900)] mb-1">3개 무료 공개 / 나머지 7개는 결제 후 바로 확인할 수 있어요.</h2>
           <p className="text-sm text-[var(--gray-600)]">
-            나머지 {lockedCount}개는 결제 후 바로 확인할 수 있어요.
+            결제 전에는 상위 3개만 먼저 확인할 수 있어요.
           </p>
         </Card>
       )}
@@ -379,7 +380,7 @@ export default function ResultClient({ namingId, lastName, result, paymentStatus
         <Card className="mb-8">
           <h2 className="font-bold text-[var(--gray-900)] mb-2">유료 공개</h2>
           <p className="text-sm text-[var(--gray-600)] mb-4">
-            숨겨진 {lockedCount}개 이름과 상세 분석을 모두 확인할 수 있어요.
+            숨겨진 {lockedCount || LOCKED_RECOMMENDATION_COUNT}개 이름을 모두 확인할 수 있어요.
           </p>
           <Button onClick={handleUnlock} disabled={unlocking}>
             {unlocking ? '결제 확인 중...' : '550원 결제로 전체 이름 보기'}
@@ -401,7 +402,7 @@ export default function ResultClient({ namingId, lastName, result, paymentStatus
       {result.philosophy && (
         <Card className="mb-4">
           <h2 className="font-bold text-[var(--gray-900)] mb-3 flex items-center gap-2">
-            📖 작명 철학
+            📖 작명 철학 추천 기준
           </h2>
           <p className="text-sm text-[var(--gray-600)] leading-relaxed whitespace-pre-wrap">
             {result.philosophy}
@@ -523,7 +524,7 @@ function NameCard({
 
           {name.energyInterpretation && (
             <div>
-              <h4 className="text-sm font-semibold text-[var(--gray-700)] mb-2">이름의 느낌</h4>
+              <h4 className="text-sm font-semibold text-[var(--gray-700)] mb-2">작명 로직</h4>
               <p className="text-sm text-[var(--gray-600)] leading-relaxed">{name.energyInterpretation}</p>
             </div>
           )}

@@ -1,5 +1,6 @@
 import type { NamingResult, NameSuggestion, StrokeAnalysis } from '@/types';
 import popularScoredNamesRaw from '@/lib/korean/data/popular-scored-names.json';
+import { TOTAL_RECOMMENDATION_COUNT } from '@/lib/naming/access-policy';
 
 const CONCEPT_KEYS = [
   '강인한',
@@ -162,8 +163,8 @@ function toSuggestion(params: {
 
   const keywordMessage =
     selectedConcepts.length > 0
-      ? `선택한 느낌(${selectedConcepts.join(', ')}) 점수를 반영한 추천입니다.`
-      : '선택 키워드 없이 인기 랭킹 기반 랜덤 추천입니다.';
+      ? '선택 키워드 반영, 최근 출생 신고가 많은 이름들로 추렸어요.'
+      : '선택 키워드 미반영, 인기 랭킹 기반 랜덤 추천이에요.';
 
   return {
     koreanName: `${lastName}${row.name}`,
@@ -204,7 +205,7 @@ export async function generateNamingFromPopularDb(
 
   const pickedRows = pickWeightedUnique(
     candidates,
-    5,
+    TOTAL_RECOMMENDATION_COUNT,
     (row) => {
       const rankWeight = 1 + (501 - Math.max(1, Math.min(row.rank, 500))) / 80;
       const conceptWeight = selectedConcepts.length > 0 ? 1 + computeCompositeScore(row, selectedConcepts) / 5 : 1;
@@ -214,7 +215,7 @@ export async function generateNamingFromPopularDb(
   );
 
   const fallbackPool = genderRows.filter((row) => !pickedRows.some((picked) => picked.name === row.name));
-  while (pickedRows.length < 5 && fallbackPool.length > 0) {
+  while (pickedRows.length < TOTAL_RECOMMENDATION_COUNT && fallbackPool.length > 0) {
     pickedRows.push(fallbackPool.shift() as PopularNameRow);
   }
 
@@ -231,8 +232,8 @@ export async function generateNamingFromPopularDb(
     names,
     philosophy:
       selectedConcepts.length > 0
-        ? `추천 기준: 인기 이름 DB + 선택 컨셉 점수(${selectedConcepts.join(', ')}) 반영`
-        : '추천 기준: 인기 이름 DB의 상위 랭킹 랜덤 추천',
+        ? '추천 기준 : 최근 출생 신고가 많은 DB 에서 선택하신 키워드 점수 반영'
+        : '추천 기준 : 최근 출생 신고가 많은 DB 에서 인기 랭킹 기반 랜덤 추천',
     avoidance: '동일 입력으로 재조회하면 추천 풀 구간이 확장되어 새로운 이름 조합을 확인할 수 있습니다.',
     generatedAt: new Date().toISOString(),
   };

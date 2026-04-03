@@ -36,7 +36,7 @@ export default function Home() {
               <div>
                 <h3 className="font-bold text-[var(--gray-900)] mb-1">AI 정밀 분석</h3>
                 <p className="text-sm text-[var(--gray-500)] leading-relaxed">
-                  30년 경력의 작명 전문가 수준의 AI가 수천 가지 조합을 분석하여 최적의 이름 5개를 추천합니다
+                  30년 경력의 작명 전문가 수준의 AI가 수천 가지 조합을 분석하여 최적의 이름 10개를 추천합니다
                 </p>
               </div>
             </div>
@@ -79,7 +79,7 @@ export default function Home() {
           {[
             { step: '1', title: '기본 정보 입력', desc: '성, 성별, 생년월일을 알려주세요' },
             { step: '2', title: 'AI가 분석 중', desc: '수천 가지 조합을 분석합니다 (약 30초)' },
-            { step: '3', title: '결과 확인', desc: '추천 이름 5개 + 상세 분석을 확인하세요' },
+            { step: '3', title: '결과 확인', desc: '추천 이름 10개 + 상세 분석을 확인하세요' },
           ].map((item) => (
             <div key={item.step} className="flex items-start gap-4">
               <div className="w-8 h-8 rounded-full bg-[var(--blue-primary)] text-white flex items-center justify-center text-sm font-bold shrink-0">
@@ -100,7 +100,7 @@ export default function Home() {
         <div className="space-y-3">
           {[
             { q: '어떤 정보가 필요한가요?', a: '성(姓), 성별, 생년월일시만 있으면 됩니다. 원하는 느낌이나 키워드를 추가할 수도 있어요.' },
-            { q: '이름은 몇 개 받을 수 있나요?', a: '총 5개의 이름을 추천받으며, 각 이름마다 한자 의미, 획수 분석, 오행 분석, 종합 점수가 포함됩니다.' },
+            { q: '이름은 몇 개 받을 수 있나요?', a: '총 10개의 이름을 추천받으며, 각 이름마다 한자 의미, 획수 분석, 오행 분석, 종합 점수가 포함됩니다.' },
             { q: '결과를 다시 볼 수 있나요?', a: '네! 결과 링크를 저장하면 언제든 다시 확인할 수 있습니다.' },
             { q: '정말 무료인가요?', a: '네, 현재 무료로 제공되고 있습니다. 부담 없이 이용해보세요!' },
           ].map((item, i) => (
