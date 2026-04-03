@@ -36,6 +36,45 @@ export async function createNaming(params: {
   if (error) throw new Error(`Failed to create naming: ${error.message}`);
 }
 
+export async function countNamingsByFingerprint(params: {
+  lastName: string;
+  gender: string;
+  birthYear?: number;
+  birthMonth?: number;
+  birthDay?: number;
+  birthHour?: number;
+  birthMinute?: number;
+  keywords?: string;
+}) {
+  let query = db()
+    .from('namings')
+    .select('id', { count: 'exact', head: true })
+    .eq('last_name', params.lastName)
+    .eq('gender', params.gender);
+
+  if (params.birthYear === undefined) query = query.is('birth_year', null);
+  else query = query.eq('birth_year', params.birthYear);
+
+  if (params.birthMonth === undefined) query = query.is('birth_month', null);
+  else query = query.eq('birth_month', params.birthMonth);
+
+  if (params.birthDay === undefined) query = query.is('birth_day', null);
+  else query = query.eq('birth_day', params.birthDay);
+
+  if (params.birthHour === undefined) query = query.is('birth_hour', null);
+  else query = query.eq('birth_hour', params.birthHour);
+
+  if (params.birthMinute === undefined) query = query.is('birth_minute', null);
+  else query = query.eq('birth_minute', params.birthMinute);
+
+  if (!params.keywords || !params.keywords.trim()) query = query.is('keywords', null);
+  else query = query.eq('keywords', params.keywords.trim());
+
+  const { count, error } = await query;
+  if (error) throw new Error(`Failed to count namings by fingerprint: ${error.message}`);
+  return count ?? 0;
+}
+
 // GPT 생성 상태 업데이트
 export async function updateGenerationStatus(
   id: string,

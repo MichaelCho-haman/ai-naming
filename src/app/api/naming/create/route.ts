@@ -1,13 +1,43 @@
 import { NextRequest, NextResponse, after } from 'next/server';
-import { createNaming, updateGenerationStatus, saveNamingResult } from '@/lib/supabase/queries';
+import {
+  createNaming,
+  countNamingsByFingerprint,
+  updateGenerationStatus,
+  saveNamingResult,
+} from '@/lib/supabase/queries';
 import { generateNamingId } from '@/lib/utils/id-generator';
 import { validateNamingInput } from '@/lib/utils/validation';
-import { generateNaming } from '@/lib/gpt/naming-generator';
+import { generateNamingFromPopularDb } from '@/lib/naming/popular-name-generator';
 import { jsonWithCors, preflight } from '@/lib/http/cors';
 
 export const maxDuration = 60;
 const appTarget = process.env.NEXT_PUBLIC_APP_TARGET ?? 'web';
 const defaultPaymentStatus = appTarget === 'toss' ? 'pending' : 'free';
+const KEYWORD_ORDER = [
+  '강인한', '지적인', '따뜻한', '밝은', '고귀한',
+  '자유로운', '성실한', '창의적인', '우아한', '리더십',
+];
+
+function normalizeKeywords(input?: string) {
+  if (!input) return undefined;
+  const unique = new Set<string>();
+  for (const rawKeyword of input.split(',')) {
+    const keyword = rawKeyword.trim();
+    if (!keyword) continue;
+    unique.add(keyword);
+  }
+  if (unique.size === 0) return undefined;
+  return [...unique]
+    .sort((a, b) => {
+      const aIdx = KEYWORD_ORDER.indexOf(a);
+      const bIdx = KEYWORD_ORDER.indexOf(b);
+      if (aIdx === -1 && bIdx === -1) return a.localeCompare(b, 'ko');
+      if (aIdx === -1) return 1;
+      if (bIdx === -1) return -1;
+      return aIdx - bIdx;
+    })
+    .join(', ');
+}
 
 export async function OPTIONS(req: NextRequest) {
   return preflight(req);
@@ -24,6 +54,20 @@ export async function POST(req: NextRequest) {
     }
 
     const namingId = generateNamingId();
+    const normalizedKeywords = normalizeKeywords(
+      typeof keywords === 'string' ? keywords : undefined
+    );
+    const previousCount = await countNamingsByFingerprint({
+      lastName: lastName.trim(),
+      gender,
+      birthYear,
+      birthMonth,
+      birthDay,
+      birthHour,
+      birthMinute,
+      keywords: normalizedKeywords,
+    });
+    const requestIndex = previousCount + 1;
 
     // DB에 저장
     await createNaming({
@@ -35,7 +79,7 @@ export async function POST(req: NextRequest) {
       birthDay,
       birthHour,
       birthMinute,
-      keywords: keywords || undefined,
+      keywords: normalizedKeywords || undefined,
       paymentStatus: defaultPaymentStatus,
     });
 
@@ -43,7 +87,7 @@ export async function POST(req: NextRequest) {
     after(async () => {
       try {
         await updateGenerationStatus(namingId, 'generating');
-        const { parsed, raw } = await generateNaming({
+        const { parsed, raw } = await generateNamingFromPopularDb({
           lastName: lastName.trim(),
           gender,
           birthYear,
@@ -51,7 +95,8 @@ export async function POST(req: NextRequest) {
           birthDay,
           birthHour,
           birthMinute,
-          keywords,
+          keywords: normalizedKeywords,
+          requestIndex,
         });
         await saveNamingResult(namingId, parsed, raw);
       } catch (error) {

@@ -15,6 +15,17 @@ const KEYWORD_OPTIONS = [
   '강인한', '지적인', '따뜻한', '밝은', '고귀한',
   '자유로운', '성실한', '창의적인', '우아한', '리더십',
 ];
+const KEYWORD_ORDER = KEYWORD_OPTIONS.reduce<Record<string, number>>((acc, keyword, index) => {
+  acc[keyword] = index;
+  return acc;
+}, {});
+
+function toNormalizedKeywordString(selectedKeywords: string[]) {
+  if (selectedKeywords.length === 0) return undefined;
+  return [...selectedKeywords]
+    .sort((a, b) => (KEYWORD_ORDER[a] ?? 999) - (KEYWORD_ORDER[b] ?? 999))
+    .join(', ');
+}
 
 export default function NamingPage() {
   const router = useRouter();
@@ -73,7 +84,7 @@ export default function NamingPage() {
           birthDay: birthDay ? Number(birthDay) : undefined,
           birthHour: birthHour ? Number(birthHour) : undefined,
           birthMinute: birthMinute ? Number(birthMinute) : undefined,
-          keywords: selectedKeywords.join(', ') || undefined,
+          keywords: toNormalizedKeywordString(selectedKeywords),
         };
         const fingerprint = buildNamingRequestFingerprint(payload);
         const cachedNamingId = getCachedNamingId(fingerprint);
@@ -82,7 +93,7 @@ export default function NamingPage() {
           const checkRes = await fetch(`/api/naming/${cachedNamingId}`);
           if (checkRes.ok) {
             const checkJson = await checkRes.json();
-            if (checkJson.generationStatus !== 'failed') {
+            if (checkJson.generationStatus === 'pending' || checkJson.generationStatus === 'generating') {
               router.push(`/success?naming_id=${cachedNamingId}`);
               return;
             }
