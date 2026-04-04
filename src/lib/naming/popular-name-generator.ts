@@ -219,14 +219,24 @@ export async function generateNamingFromPopularDb(
     pickedRows.push(fallbackPool.shift() as PopularNameRow);
   }
 
-  const names = pickedRows.map((row) =>
-    toSuggestion({
+  const suggestionsWithMeta = pickedRows.map((row) => ({
+    row,
+    suggestion: toSuggestion({
       row,
       lastName: params.lastName,
       selectedConcepts,
       rankWindowLabel,
-    })
-  );
+    }),
+  }));
+
+  // 화면의 1~N위가 점수와 일치하도록 최종 결과를 점수 내림차순으로 정렬합니다.
+  suggestionsWithMeta.sort((a, b) => {
+    const scoreDiff = b.suggestion.score - a.suggestion.score;
+    if (scoreDiff !== 0) return scoreDiff;
+    return a.row.rank - b.row.rank;
+  });
+
+  const names = suggestionsWithMeta.map(({ suggestion }) => suggestion);
 
   const parsed: NamingResult = {
     names,
