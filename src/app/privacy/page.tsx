@@ -11,7 +11,7 @@ export default function PrivacyPage() {
             <h2 className="text-lg font-bold text-[var(--gray-900)]">1. 수집하는 개인정보</h2>
             <p>서비스 이용을 위해 다음 정보를 수집합니다:</p>
             <ul className="list-disc list-inside space-y-1">
-              <li>성(姓), 성별, 생년월일시 (작명 서비스 제공용)</li>
+              <li>성(姓), 성별, 선택 키워드 (작명 서비스 제공용)</li>
               <li>이메일 주소 (소셜 로그인 시)</li>
               <li>결제 정보 (Stripe를 통해 안전하게 처리)</li>
             </ul>

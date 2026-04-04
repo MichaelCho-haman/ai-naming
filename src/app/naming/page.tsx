@@ -32,16 +32,11 @@ export default function NamingPage() {
   const [step, setStep] = useState(1);
   const [lastName, setLastName] = useState('');
   const [gender, setGender] = useState<string>('');
-  const [birthYear, setBirthYear] = useState('');
-  const [birthMonth, setBirthMonth] = useState('');
-  const [birthDay, setBirthDay] = useState('');
-  const [birthHour, setBirthHour] = useState('');
-  const [birthMinute, setBirthMinute] = useState('');
   const [selectedKeywords, setSelectedKeywords] = useState<string[]>([]);
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  const totalSteps = 4;
+  const totalSteps = 3;
 
   const toggleKeyword = (kw: string) => {
     setSelectedKeywords(prev =>
@@ -79,11 +74,6 @@ export default function NamingPage() {
         const payload = {
           lastName: lastName.trim(),
           gender,
-          birthYear: birthYear ? Number(birthYear) : undefined,
-          birthMonth: birthMonth ? Number(birthMonth) : undefined,
-          birthDay: birthDay ? Number(birthDay) : undefined,
-          birthHour: birthHour ? Number(birthHour) : undefined,
-          birthMinute: birthMinute ? Number(birthMinute) : undefined,
           keywords: toNormalizedKeywordString(selectedKeywords),
         };
         const fingerprint = buildNamingRequestFingerprint(payload);
@@ -187,70 +177,8 @@ export default function NamingPage() {
         </div>
       )}
 
-      {/* Step 3: 생년월일시 */}
+      {/* Step 3: 키워드 */}
       {step === 3 && (
-        <div className="animate-fade-in">
-          <h1 className="text-2xl font-bold text-[var(--gray-900)] mb-2">
-            생년월일시를<br />입력해주세요
-          </h1>
-          <p className="text-[var(--gray-500)] mb-8">사주 분석에 활용됩니다 (선택)</p>
-          <div className="space-y-4">
-            <div className="grid grid-cols-3 gap-3">
-              <Input
-                label="년"
-                type="number"
-                placeholder="2026"
-                value={birthYear}
-                onChange={e => setBirthYear(e.target.value)}
-              />
-              <Input
-                label="월"
-                type="number"
-                placeholder="1"
-                min={1}
-                max={12}
-                value={birthMonth}
-                onChange={e => setBirthMonth(e.target.value)}
-              />
-              <Input
-                label="일"
-                type="number"
-                placeholder="1"
-                min={1}
-                max={31}
-                value={birthDay}
-                onChange={e => setBirthDay(e.target.value)}
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <Input
-                label="시"
-                type="number"
-                placeholder="13"
-                min={0}
-                max={23}
-                value={birthHour}
-                onChange={e => setBirthHour(e.target.value)}
-              />
-              <Input
-                label="분"
-                type="number"
-                placeholder="30"
-                min={0}
-                max={59}
-                value={birthMinute}
-                onChange={e => setBirthMinute(e.target.value)}
-              />
-            </div>
-            <p className="text-xs text-[var(--gray-400)] text-center">
-              모르는 항목은 비워두셔도 됩니다
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* Step 4: 키워드 */}
-      {step === 4 && (
         <div className="animate-fade-in">
           <h1 className="text-2xl font-bold text-[var(--gray-900)] mb-2">
             원하는 이름의<br />느낌이 있나요?

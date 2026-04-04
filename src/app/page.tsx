@@ -15,8 +15,7 @@ export default function Home() {
           가장 좋은 첫 선물
         </h1>
         <p className="text-lg text-[var(--gray-500)] mb-10 leading-relaxed break-keep">
-          사주 분석 기반, 음양오행/획수/한자를<br />
-          모두 고려한 완벽한 이름을 추천합니다
+          최근 출생신고 기반, 이름의 느낌을 고려한 완벽한 이름을 추천합니다.
         </p>
         <Link href="/naming">
           <Button>
@@ -41,34 +40,6 @@ export default function Home() {
               </div>
             </div>
           </Card>
-
-          <Card className="animate-slide-up" style={{ animationDelay: '0.1s' }}>
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-green-50 flex items-center justify-center text-2xl shrink-0">
-                ☯️
-              </div>
-              <div>
-                <h3 className="font-bold text-[var(--gray-900)] mb-1">음양오행 분석</h3>
-                <p className="text-sm text-[var(--gray-500)] leading-relaxed">
-                  생년월일시 기반의 사주와 조화를 이루는 이름을 추천하여 운명의 균형을 맞춥니다
-                </p>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="animate-slide-up" style={{ animationDelay: '0.2s' }}>
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-purple-50 flex items-center justify-center text-2xl shrink-0">
-                📊
-              </div>
-              <div>
-                <h3 className="font-bold text-[var(--gray-900)] mb-1">완벽한 획수 분석</h3>
-                <p className="text-sm text-[var(--gray-500)] leading-relaxed">
-                  천격, 인격, 지격, 외격, 총격 — 5가지 획수를 모두 분석하여 길한 이름만 추천합니다
-                </p>
-              </div>
-            </div>
-          </Card>
         </div>
       </section>
 
@@ -77,7 +48,7 @@ export default function Home() {
         <h2 className="text-xl font-bold text-[var(--gray-900)] mb-6 text-center">이렇게 진행돼요</h2>
         <div className="space-y-6">
           {[
-            { step: '1', title: '기본 정보 입력', desc: '성, 성별, 생년월일을 알려주세요' },
+            { step: '1', title: '기본 정보 입력', desc: '성, 성별, 원하는 느낌을 알려주세요' },
             { step: '2', title: 'AI가 분석 중', desc: '수천 가지 조합을 분석합니다 (약 30초)' },
             { step: '3', title: '결과 확인', desc: '추천 이름 10개 + 상세 분석을 확인하세요' },
           ].map((item) => (
@@ -99,7 +70,7 @@ export default function Home() {
         <h2 className="text-xl font-bold text-[var(--gray-900)] mb-6 text-center">자주 묻는 질문</h2>
         <div className="space-y-3">
           {[
-            { q: '어떤 정보가 필요한가요?', a: '성(姓), 성별, 생년월일시만 있으면 됩니다. 원하는 느낌이나 키워드를 추가할 수도 있어요.' },
+            { q: '어떤 정보가 필요한가요?', a: '성(姓), 성별, 원하는 느낌만 선택하면 됩니다.' },
             { q: '이름은 몇 개 받을 수 있나요?', a: '총 10개의 이름을 추천받으며, 각 이름마다 한자 의미, 획수 분석, 오행 분석, 종합 점수가 포함됩니다.' },
             { q: '결과를 다시 볼 수 있나요?', a: '네! 결과 링크를 저장하면 언제든 다시 확인할 수 있습니다.' },
             { q: '정말 무료인가요?', a: '네, 현재 무료로 제공되고 있습니다. 부담 없이 이용해보세요!' },
