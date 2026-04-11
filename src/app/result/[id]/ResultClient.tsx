@@ -95,6 +95,13 @@ function createErrorWithDebug(message: string, debug?: string) {
   return error;
 }
 
+function formatSharedName(lastName: string, koreanName: string) {
+  const trimmed = (koreanName || '').trim();
+  if (!trimmed || trimmed === '결제 후 공개') return '';
+  if (!lastName) return trimmed;
+  return trimmed.startsWith(lastName) ? trimmed : `${lastName}${trimmed}`;
+}
+
 async function ensureUserKey() {
   const storedUserKey = getStoredUserKey();
   if (storedUserKey) return storedUserKey;
@@ -161,7 +168,16 @@ export default function ResultClient({ namingId, lastName, result, paymentStatus
 
   const handleShare = async () => {
     const url = window.location.href;
-    const text = '애기 이름짓기에서 작명 결과를 확인해보세요!';
+    const sharedNames = namesWithLock
+      .filter(({ locked }) => !locked)
+      .map(({ name }) => formatSharedName(lastName, name.koreanName))
+      .filter(Boolean);
+    const countLabel = sharedNames.length;
+    const namesLabel = sharedNames.join(', ');
+    const text =
+      countLabel > 0
+        ? `내가 추천받은 이름이에요 (${countLabel}개)\n${namesLabel}`
+        : '내가 추천받은 이름이에요.';
 
     if (navigator.share) {
       try {
